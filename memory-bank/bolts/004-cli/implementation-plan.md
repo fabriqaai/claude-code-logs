@@ -32,7 +32,7 @@ Implement a Cobra-based CLI that orchestrates all existing components (parser, g
 
 **Command Structure**:
 ```
-claude-logs
+claude-code-logs
 ├── generate   # One-time HTML generation
 ├── serve      # Start HTTP server (with optional --watch)
 ├── watch      # Standalone watcher (placeholder for bolt 005)
@@ -40,7 +40,7 @@ claude-logs
 ```
 
 **Shared Flags**:
-- `--output-dir` (default: `~/.claude-logs`) - Output directory for HTML
+- `--output-dir` (default: `~/.claude-code-logs`) - Output directory for HTML
 - `--verbose` (default: false) - Verbose output
 
 **Command-Specific Flags**:
@@ -70,12 +70,12 @@ claude-logs
 
 ### Acceptance Criteria
 
-- [ ] `claude-logs generate` generates HTML in output directory
-- [ ] `claude-logs serve` starts server on port 8080
-- [ ] `claude-logs serve --port 3000` uses custom port
-- [ ] `claude-logs serve --watch` enables watch mode (placeholder message for now)
-- [ ] `claude-logs watch` shows "not yet implemented" message
-- [ ] `claude-logs version` displays version
+- [ ] `claude-code-logs generate` generates HTML in output directory
+- [ ] `claude-code-logs serve` starts server on port 8080
+- [ ] `claude-code-logs serve --port 3000` uses custom port
+- [ ] `claude-code-logs serve --watch` enables watch mode (placeholder message for now)
+- [ ] `claude-code-logs watch` shows "not yet implemented" message
+- [ ] `claude-code-logs version` displays version
 - [ ] `--output-dir` flag works on all commands
 - [ ] Ctrl+C triggers graceful shutdown
 - [ ] Invalid flags show help message

@@ -12,7 +12,7 @@ Implemented a file watcher using fsnotify that monitors `~/.claude/projects/` fo
 
 ### Structure Overview
 
-The watcher follows an event-driven architecture with three main components: the fsnotify listener for file system events, a debouncer that coalesces rapid changes using timers, and a regenerator callback that incrementally updates HTML. The implementation supports both standalone operation (`claude-logs watch`) and background operation with the server (`claude-logs serve --watch`).
+The watcher follows an event-driven architecture with three main components: the fsnotify listener for file system events, a debouncer that coalesces rapid changes using timers, and a regenerator callback that incrementally updates HTML. The implementation supports both standalone operation (`claude-code-logs watch`) and background operation with the server (`claude-code-logs serve --watch`).
 
 ### Completed Work
 

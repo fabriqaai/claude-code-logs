@@ -90,9 +90,9 @@ Simplify the CLI interface by:
 
 ## Success Criteria
 
-- [x] `claude-logs serve` generates HTML then starts server
-- [x] `claude-logs serve --watch` enables file watching
-- [x] `claude-logs serve --dir /path` uses custom directory
+- [x] `claude-code-logs serve` generates HTML then starts server
+- [x] `claude-code-logs serve --watch` enables file watching
+- [x] `claude-code-logs serve --dir /path` uses custom directory
 - [x] Default output is `~/claude-code-logs/`
 - [x] Old commands show helpful migration messages
 - [x] All existing tests pass

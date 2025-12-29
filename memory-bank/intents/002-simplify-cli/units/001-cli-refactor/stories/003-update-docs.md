@@ -19,12 +19,12 @@ implemented: true
 
 ## Acceptance Criteria
 
-- [ ] **Given** I view README.md, **When** reading Quick Start, **Then** I see only `claude-logs serve` (not generate + serve)
+- [ ] **Given** I view README.md, **When** reading Quick Start, **Then** I see only `claude-code-logs serve` (not generate + serve)
 - [ ] **Given** I view README.md, **When** reading Commands Overview, **Then** I see only 2 commands: `serve` and `version`
 - [ ] **Given** I view README.md, **When** reading Configuration table, **Then** `--dir`/`-d` is documented (not `--output-dir`/`-o`)
-- [ ] **Given** I view README.md, **When** reading default output, **Then** it shows `~/claude-code-logs/` (not `~/.claude-logs/`)
-- [ ] **Given** I run `claude-logs serve --help`, **When** viewing help, **Then** all flags are accurately described
-- [ ] **Given** I run `claude-logs --help`, **When** viewing root help, **Then** only serve and version are listed
+- [ ] **Given** I view README.md, **When** reading default output, **Then** it shows `~/claude-code-logs/` (not `~/.claude-code-logs/`)
+- [ ] **Given** I run `claude-code-logs serve --help`, **When** viewing help, **Then** all flags are accurately described
+- [ ] **Given** I run `claude-code-logs --help`, **When** viewing root help, **Then** only serve and version are listed
 
 ## Technical Notes
 
@@ -32,13 +32,13 @@ implemented: true
 
 **Quick Start section** (before):
 ```bash
-claude-logs generate
-claude-logs serve
+claude-code-logs generate
+claude-code-logs serve
 ```
 
 **Quick Start section** (after):
 ```bash
-claude-logs serve
+claude-code-logs serve
 # Open http://localhost:8080 in your browser
 ```
 

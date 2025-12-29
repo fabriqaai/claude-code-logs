@@ -9,7 +9,7 @@ updated: 2025-12-29T14:05:00Z
 
 ## System Overview
 
-Refactoring of the existing `claude-logs` CLI tool to reduce command complexity. The system boundary remains identical to Intent 001 - this is a CLI interface change only, not a functional change.
+Refactoring of the existing `claude-code-logs` CLI tool to reduce command complexity. The system boundary remains identical to Intent 001 - this is a CLI interface change only, not a functional change.
 
 ## Context Diagram
 
@@ -18,7 +18,7 @@ C4Context
     title System Context - Simplify CLI
 
     Person(user, "Developer", "Uses CLI to browse chat logs")
-    System(cli, "claude-logs CLI", "Simplified 2-command interface")
+    System(cli, "claude-code-logs CLI", "Simplified 2-command interface")
     System_Ext(claude, "Claude Code", "Source of JSONL chat logs")
     System_Ext(browser, "Web Browser", "Displays generated HTML")
     System_Ext(fs, "File System", "Stores generated HTML output")
@@ -64,9 +64,9 @@ C4Context
 
 ## Key NFR Goals
 
-- Zero-config startup: `claude-logs serve` just works
+- Zero-config startup: `claude-code-logs serve` just works
 - Minimal commands to remember: 2 instead of 4
-- Sensible default directory: visible `~/claude-code-logs/` vs hidden `~/.claude-logs/`
+- Sensible default directory: visible `~/claude-code-logs/` vs hidden `~/.claude-code-logs/`
 
 ## Boundary Clarification
 

@@ -38,7 +38,7 @@ Download the latest release from [GitHub Releases](https://github.com/fabriqaai/
 
 ```bash
 # Start the server (generates HTML automatically)
-claude-logs serve
+claude-code-logs serve
 
 # Open http://localhost:8080 in your browser
 ```
@@ -50,17 +50,17 @@ claude-logs serve
 Generate HTML and start a local web server:
 
 ```bash
-claude-logs serve                    # Default port 8080, outputs to ~/claude-code-logs
-claude-logs serve --port 3000        # Custom port
-claude-logs serve --dir /custom/path # Custom output directory
-claude-logs serve --watch            # Auto-regenerate on changes
-claude-logs serve --verbose          # Verbose output
+claude-code-logs serve                    # Default port 8080, outputs to ~/claude-code-logs
+claude-code-logs serve --port 3000        # Custom port
+claude-code-logs serve --dir /custom/path # Custom output directory
+claude-code-logs serve --watch            # Auto-regenerate on changes
+claude-code-logs serve --verbose          # Verbose output
 ```
 
 ### Version Info
 
 ```bash
-claude-logs version
+claude-code-logs version
 ```
 
 ## Commands
@@ -115,10 +115,10 @@ cd claude-code-logs
 go test -v ./...
 
 # Build
-go build -o claude-logs .
+go build -o claude-code-logs .
 
 # Run locally
-./claude-logs serve
+./claude-code-logs serve
 ```
 
 ## License

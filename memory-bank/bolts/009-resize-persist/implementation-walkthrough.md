@@ -57,7 +57,7 @@ Each template now includes a self-executing function with:
 
 **Storage Constants**:
 ```javascript
-var STORAGE_KEY = 'claude-logs-sidebar';
+var STORAGE_KEY = 'claude-code-logs-sidebar';
 ```
 
 **loadSidebarState()**:

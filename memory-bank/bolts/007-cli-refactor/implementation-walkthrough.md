@@ -16,7 +16,7 @@ The CLI now has a streamlined command structure with `serve` as the main command
 
 ### Completed Work
 
-- [x] `main.go` - Updated global flag from `outputDir`/`--output-dir`/`-o` to `dirFlag`/`--dir`/`-d`, changed default from `~/.claude-logs` to `~/claude-code-logs`, added hidden legacy command handlers
+- [x] `main.go` - Updated global flag from `outputDir`/`--output-dir`/`-o` to `dirFlag`/`--dir`/`-d`, changed default from `~/.claude-code-logs` to `~/claude-code-logs`, added hidden legacy command handlers
 - [x] `cmd_serve.go` - Added auto-generation on startup (always generates, not just when dir missing), moved `ensureWritableDir` here, updated help text
 - [x] `cmd_generate.go` - DELETED (functionality absorbed by serve)
 - [x] `cmd_watch.go` - DELETED (functionality available via serve --watch)

@@ -49,8 +49,8 @@ func TestExpandPath(t *testing.T) {
 		},
 		{
 			name:  "tilde with subpath",
-			input: "~/.claude-logs",
-			want:  filepath.Join(home, ".claude-logs"),
+			input: "~/.claude-code-logs",
+			want:  filepath.Join(home, ".claude-code-logs"),
 		},
 	}
 

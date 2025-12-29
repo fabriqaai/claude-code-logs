@@ -23,9 +23,9 @@ var (
 
 // rootCmd is the base command for the CLI
 var rootCmd = &cobra.Command{
-	Use:   "claude-logs",
+	Use:   "claude-code-logs",
 	Short: "Browse and search Claude Code chat logs",
-	Long: `claude-logs generates HTML pages from Claude Code chat logs and serves them locally.
+	Long: `claude-code-logs generates HTML pages from Claude Code chat logs and serves them locally.
 
 It scans ~/.claude/projects for chat sessions and creates a searchable web interface.`,
 }
@@ -36,7 +36,7 @@ var generateCmd = &cobra.Command{
 	Short:  "Generate HTML pages (DEPRECATED)",
 	Hidden: true,
 	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println("Command removed. Use 'claude-logs serve' instead (generates automatically on startup)")
+		fmt.Println("Command removed. Use 'claude-code-logs serve' instead (generates automatically on startup)")
 	},
 }
 
@@ -45,7 +45,7 @@ var watchCmd = &cobra.Command{
 	Short:  "Watch for changes (DEPRECATED)",
 	Hidden: true,
 	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println("Command removed. Use 'claude-logs serve --watch' instead")
+		fmt.Println("Command removed. Use 'claude-code-logs serve --watch' instead")
 	},
 }
 

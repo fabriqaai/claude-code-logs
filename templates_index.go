@@ -110,7 +110,7 @@ const indexTemplate = `<!DOCTYPE html>
     </div>
     <script>
     (function() {
-        var STORAGE_KEY = 'claude-logs-sidebar';
+        var STORAGE_KEY = 'claude-code-logs-sidebar';
         var sidebar = document.querySelector('.sidebar');
         var resizeHandle = document.querySelector('.sidebar-resize-handle');
         var menuBtn = document.querySelector('.mobile-menu-btn');

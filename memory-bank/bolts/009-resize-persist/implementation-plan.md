@@ -36,7 +36,7 @@ Add resizable sidebar width with drag handle, persist UI state (width, collapsed
 - Add touch event support for mobile
 
 **2. localStorage Persistence (Story 002)**
-- Storage key: `claude-logs-sidebar`
+- Storage key: `claude-code-logs-sidebar`
 - Data shape: `{ width: number, collapsed: string[] }`
 - Load on `DOMContentLoaded` (before paint ideally)
 - Save width on resize `mouseup`

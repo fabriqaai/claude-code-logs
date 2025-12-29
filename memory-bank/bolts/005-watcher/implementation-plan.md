@@ -79,8 +79,8 @@ File Change → fsnotify Event → Filter (.jsonl) → Debouncer → Regenerate 
 - [ ] Only regenerates affected project's HTML (not full site)
 - [ ] Graceful shutdown on Ctrl+C (SIGINT/SIGTERM)
 - [ ] Configurable poll interval via `--interval` flag
-- [ ] Works standalone (`claude-logs watch`)
-- [ ] Works with server (`claude-logs serve --watch`)
+- [ ] Works standalone (`claude-code-logs watch`)
+- [ ] Works with server (`claude-code-logs serve --watch`)
 
 ### File Structure
 
@@ -98,7 +98,7 @@ File Change → fsnotify Event → Filter (.jsonl) → Debouncer → Regenerate 
 // WatchConfig configures the file watcher
 type WatchConfig struct {
     SourceDir     string        // ~/.claude/projects/
-    OutputDir     string        // ~/.claude-logs/
+    OutputDir     string        // ~/.claude-code-logs/
     PollInterval  time.Duration // Default: 30s (for new directory scanning)
     DebounceDelay time.Duration // Default: 2s
 }

@@ -36,7 +36,7 @@ Generate static HTML pages from parsed session data with Claude.ai visual stylin
 ### Output Structure
 
 ```
-~/.claude-logs/
+~/.claude-code-logs/
 ├── index.html           # Project navigation
 ├── projects/
 │   └── {project-name}/

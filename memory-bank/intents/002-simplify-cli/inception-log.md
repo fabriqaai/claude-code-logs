@@ -46,7 +46,7 @@ status: complete
 |------|----------|-----------|----------|
 | 2025-12-29 | Remove `generate` command | Redundant - serve can auto-generate | Yes |
 | 2025-12-29 | Remove `watch` command | Redundant - serve --watch covers this | Yes |
-| 2025-12-29 | Default to ~/claude-code-logs/ | More visible than hidden ~/.claude-logs/ | Yes |
+| 2025-12-29 | Default to ~/claude-code-logs/ | More visible than hidden ~/.claude-code-logs/ | Yes |
 | 2025-12-29 | Use --dir instead of --output-dir | Shorter, clearer | Yes |
 | 2025-12-29 | Show helpful migration messages | Better UX for users with existing scripts | Yes |
 

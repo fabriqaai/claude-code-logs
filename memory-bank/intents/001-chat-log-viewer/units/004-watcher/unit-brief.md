@@ -42,7 +42,7 @@ type WatchConfig struct {
     PollInterval  time.Duration  // Default: 30 seconds
     DebounceDelay time.Duration  // Default: 2 seconds
     SourceDir     string         // Default: ~/.claude/projects/
-    OutputDir     string         // Default: ~/.claude-logs/
+    OutputDir     string         // Default: ~/.claude-code-logs/
 }
 ```
 

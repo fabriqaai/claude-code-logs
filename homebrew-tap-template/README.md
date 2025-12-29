@@ -26,13 +26,13 @@ brew install fabriqa/tap/claude-code-logs
 
 ```bash
 # Generate HTML from chat logs
-claude-logs generate
+claude-code-logs generate
 
 # Start the local server
-claude-logs serve
+claude-code-logs serve
 
 # Watch for changes and auto-regenerate
-claude-logs watch
+claude-code-logs watch
 ```
 
 ## Updating

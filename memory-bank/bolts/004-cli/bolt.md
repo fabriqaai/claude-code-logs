@@ -71,11 +71,11 @@ Implement CLI commands using Cobra framework: generate, serve, watch, and versio
 
 ## Success Criteria
 
-- [ ] `claude-logs generate` works
-- [ ] `claude-logs serve` starts server on port 8080
-- [ ] `claude-logs serve --watch` combines serve and watch
-- [ ] `claude-logs watch` monitors for changes
-- [ ] `claude-logs version` shows version
+- [ ] `claude-code-logs generate` works
+- [ ] `claude-code-logs serve` starts server on port 8080
+- [ ] `claude-code-logs serve --watch` combines serve and watch
+- [ ] `claude-code-logs watch` monitors for changes
+- [ ] `claude-code-logs version` shows version
 - [ ] `--output-dir` flag works on all commands
 - [ ] `--port` flag works with serve
 - [ ] Graceful shutdown on Ctrl+C
@@ -86,6 +86,6 @@ Implement CLI commands using Cobra framework: generate, serve, watch, and versio
 ## Notes
 
 - Use Cobra CLI framework
-- Default output directory: ~/.claude-logs
+- Default output directory: ~/.claude-code-logs
 - Version embedded at build time via ldflags
 - Follow Go CLI conventions

@@ -128,7 +128,7 @@ type Match struct {
 |---------|---------|-------------|
 | Port | 8080 | HTTP listening port |
 | Host | 127.0.0.1 | Localhost only for security |
-| OutputDir | ~/.claude-logs | Directory with generated HTML |
+| OutputDir | ~/.claude-code-logs | Directory with generated HTML |
 
 #### 6. Graceful Shutdown
 

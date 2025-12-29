@@ -20,7 +20,7 @@ created: 2025-12-29T11:15:00Z
 | System | Direction | Data | Protocol | Risk |
 |--------|-----------|------|----------|------|
 | `~/.claude/projects/` | Inbound | JSONL session files | File I/O | Low - local filesystem |
-| `~/.claude-logs/` (output) | Outbound | Generated HTML | File I/O | Low - local filesystem |
+| `~/.claude-code-logs/` (output) | Outbound | Generated HTML | File I/O | Low - local filesystem |
 | Web Browser | Both | HTML + Search queries | HTTP (server mode) | Low - localhost only |
 | Homebrew | Distribution | Binary package | brew install | Low |
 
@@ -38,9 +38,9 @@ created: 2025-12-29T11:15:00Z
 
 | Data | Destination | Format | Guarantees |
 |------|-------------|--------|------------|
-| HTML pages | `~/.claude-logs/` | HTML | Atomic write |
+| HTML pages | `~/.claude-code-logs/` | HTML | Atomic write |
 | Search results | Browser | JSON | Sync response |
-| Static assets | `~/.claude-logs/` | CSS/JS | Embedded in HTML |
+| Static assets | `~/.claude-code-logs/` | CSS/JS | Embedded in HTML |
 
 ## Context Diagram
 
@@ -53,7 +53,7 @@ C4Context
     System(cli, "claude-code-logs", "CLI tool that parses logs and serves HTML")
 
     System_Ext(claude, "~/.claude/projects/", "Claude Code session storage")
-    System_Ext(output, "~/.claude-logs/", "Generated HTML output")
+    System_Ext(output, "~/.claude-code-logs/", "Generated HTML output")
     System_Ext(browser, "Web Browser", "Renders HTML, executes search")
     System_Ext(homebrew, "Homebrew", "Distribution via fabriqa/tap")
 

@@ -54,10 +54,10 @@ The watcher can be manually tested with:
 
 ```bash
 # Standalone watch mode
-claude-logs watch -v
+claude-code-logs watch -v
 
 # Watch with server
-claude-logs serve --watch
+claude-code-logs serve --watch
 
 # Create a test session to trigger regeneration
 echo '{"type":"summary","summary":"test"}' >> ~/.claude/projects/-test-project/test.jsonl

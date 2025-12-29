@@ -19,7 +19,7 @@ implemented: true
 
 ## Acceptance Criteria
 
-- [ ] **Given** `claude-logs serve` run, **When** started, **Then** HTTP server listens on configurable port (default 8080)
+- [ ] **Given** `claude-code-logs serve` run, **When** started, **Then** HTTP server listens on configurable port (default 8080)
 - [ ] **Given** server running, **When** accessing `/`, **Then** index.html is served
 - [ ] **Given** server running, **When** POST `/api/search` with query, **Then** matching results returned with context
 - [ ] **Given** search request with project filter, **When** executing, **Then** results limited to that project

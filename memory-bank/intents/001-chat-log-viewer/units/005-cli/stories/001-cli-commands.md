@@ -19,19 +19,19 @@ implemented: true
 
 ## Acceptance Criteria
 
-- [ ] **Given** user runs `claude-logs generate`, **When** executed, **Then** HTML files generated in output directory
-- [ ] **Given** user runs `claude-logs serve`, **When** executed, **Then** HTTP server starts on default port 8080
-- [ ] **Given** user runs `claude-logs watch`, **When** executed, **Then** watcher monitors for changes
-- [ ] **Given** user runs `claude-logs serve --watch`, **When** executed, **Then** server starts with background watcher
+- [ ] **Given** user runs `claude-code-logs generate`, **When** executed, **Then** HTML files generated in output directory
+- [ ] **Given** user runs `claude-code-logs serve`, **When** executed, **Then** HTTP server starts on default port 8080
+- [ ] **Given** user runs `claude-code-logs watch`, **When** executed, **Then** watcher monitors for changes
+- [ ] **Given** user runs `claude-code-logs serve --watch`, **When** executed, **Then** server starts with background watcher
 - [ ] **Given** user provides `--output-dir PATH`, **When** any command runs, **Then** uses specified output directory
 - [ ] **Given** user provides `--port PORT`, **When** serve runs, **Then** uses specified port
-- [ ] **Given** user runs `claude-logs version`, **When** executed, **Then** shows version number
+- [ ] **Given** user runs `claude-code-logs version`, **When** executed, **Then** shows version number
 - [ ] **Given** any command running, **When** Ctrl+C pressed, **Then** graceful shutdown
 
 ## Technical Notes
 
 - Use Cobra for CLI framework
-- Default output directory: `~/.claude-logs`
+- Default output directory: `~/.claude-code-logs`
 - Default port: 8080
 - Default watch interval: 30 seconds
 - Follow Go CLI conventions (flags, help text)

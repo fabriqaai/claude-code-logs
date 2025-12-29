@@ -33,7 +33,7 @@ validated: 2025-12-29T17:15:00Z
 ```
 $ go build -ldflags "-X main.version=0.1.0 -X main.commit=abc123 -X main.date=2025-12-29" -o /tmp/test .
 $ /tmp/test version
-claude-logs version 0.1.0
+claude-code-logs version 0.1.0
   Commit: abc123
   Built: 2025-12-29
   Go version: go1.25.5

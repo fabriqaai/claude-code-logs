@@ -27,8 +27,8 @@ Simplify the CLI interface by reducing redundant commands from 4 to 2. The `serv
 ### FR-1: Remove `generate` Command
 - **Description**: Eliminate standalone `generate` command; auto-generate on `serve` startup
 - **Acceptance Criteria**:
-  - `claude-logs generate` no longer exists
-  - `claude-logs serve` generates HTML before starting server
+  - `claude-code-logs generate` no longer exists
+  - `claude-code-logs serve` generates HTML before starting server
   - Generation happens automatically on every `serve` invocation
 - **Priority**: Must
 - **Related Stories**: TBD
@@ -36,8 +36,8 @@ Simplify the CLI interface by reducing redundant commands from 4 to 2. The `serv
 ### FR-2: Remove `watch` Command
 - **Description**: Eliminate standalone `watch` command; use `serve --watch` instead
 - **Acceptance Criteria**:
-  - `claude-logs watch` no longer exists
-  - `claude-logs serve --watch` enables file watching
+  - `claude-code-logs watch` no longer exists
+  - `claude-code-logs serve --watch` enables file watching
   - Watch mode regenerates HTML when source files change
 - **Priority**: Must
 - **Related Stories**: TBD
@@ -45,7 +45,7 @@ Simplify the CLI interface by reducing redundant commands from 4 to 2. The `serv
 ### FR-3: Default Output Directory
 - **Description**: Change default output directory to `~/claude-code-logs/`
 - **Acceptance Criteria**:
-  - Default output is `$HOME/claude-code-logs/` (not `~/.claude-logs/`)
+  - Default output is `$HOME/claude-code-logs/` (not `~/.claude-code-logs/`)
   - Directory is created if it doesn't exist
   - Works on macOS and Linux
 - **Priority**: Must
@@ -54,7 +54,7 @@ Simplify the CLI interface by reducing redundant commands from 4 to 2. The `serv
 ### FR-4: Working Directory Flag
 - **Description**: Add `--dir` flag to specify custom working directory
 - **Acceptance Criteria**:
-  - `claude-logs serve --dir /custom/path` uses specified directory
+  - `claude-code-logs serve --dir /custom/path` uses specified directory
   - Short form `-d` available
   - Replaces `--output-dir` / `-o` flags
   - Directory is created if it doesn't exist
@@ -64,8 +64,8 @@ Simplify the CLI interface by reducing redundant commands from 4 to 2. The `serv
 ### FR-5: Update Help Text
 - **Description**: Update CLI help to reflect simplified commands
 - **Acceptance Criteria**:
-  - `claude-logs --help` shows only `serve` and `version`
-  - `claude-logs serve --help` shows all available flags
+  - `claude-code-logs --help` shows only `serve` and `version`
+  - `claude-code-logs serve --help` shows all available flags
   - Examples in help text are accurate
 - **Priority**: Must
 - **Related Stories**: TBD
@@ -91,7 +91,7 @@ Simplify the CLI interface by reducing redundant commands from 4 to 2. The `serv
 ### User Experience
 | Requirement | Metric | Target |
 |-------------|--------|--------|
-| Time to first use | Commands to type | 1 (`claude-logs serve`) |
+| Time to first use | Commands to type | 1 (`claude-code-logs serve`) |
 | Learning curve | Commands to remember | 2 |
 
 ---

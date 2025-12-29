@@ -21,12 +21,12 @@ ok  	github.com/fabriqaai/claude-code-logs	0.792s
 
 ### Acceptance Criteria Validation
 
-- ✅ **`claude-logs generate`**: Generates HTML in output directory (tested with 14 projects, 117 sessions)
-- ✅ **`claude-logs serve`**: Server starts on port 8080 (server tests pass)
-- ✅ **`claude-logs serve --port 3000`**: Custom port flag works (flag validation tested)
-- ✅ **`claude-logs serve --watch`**: Placeholder message shown (defer to bolt 005)
-- ✅ **`claude-logs watch`**: Shows "not yet implemented" message
-- ✅ **`claude-logs version`**: Displays version, Go version, OS/Arch
+- ✅ **`claude-code-logs generate`**: Generates HTML in output directory (tested with 14 projects, 117 sessions)
+- ✅ **`claude-code-logs serve`**: Server starts on port 8080 (server tests pass)
+- ✅ **`claude-code-logs serve --port 3000`**: Custom port flag works (flag validation tested)
+- ✅ **`claude-code-logs serve --watch`**: Placeholder message shown (defer to bolt 005)
+- ✅ **`claude-code-logs watch`**: Shows "not yet implemented" message
+- ✅ **`claude-code-logs version`**: Displays version, Go version, OS/Arch
 - ✅ **`--output-dir`** flag: Works on all commands (path expansion tested)
 - ✅ **Ctrl+C**: Graceful shutdown (server tests verify signal handling)
 - ✅ **Invalid flags**: Cobra provides automatic help
@@ -55,7 +55,7 @@ ok  	github.com/fabriqaai/claude-code-logs	0.792s
 
 Executed end-to-end test:
 ```bash
-./claude-logs generate --output-dir /tmp/claude-logs-test
+./claude-code-logs generate --output-dir /tmp/claude-code-logs-test
 ```
 
 **Result**: Successfully generated HTML for 14 projects with 117 sessions in 3.079s

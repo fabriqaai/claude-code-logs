@@ -46,6 +46,6 @@ The CLI follows a flat package structure per project coding standards. Each comm
 ### Developer Notes
 
 - Version is injected at build time via ldflags: `-ldflags "-X main.Version=1.0.0"`
-- Default output directory is ~/.claude-logs, expandable with --output-dir
+- Default output directory is ~/.claude-code-logs, expandable with --output-dir
 - Server gracefully shuts down on SIGINT/SIGTERM (handled in server.go)
 - Watch mode implementation deferred to bolt 005-watcher

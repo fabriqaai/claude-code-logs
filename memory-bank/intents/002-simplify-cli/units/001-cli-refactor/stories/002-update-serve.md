@@ -19,13 +19,13 @@ implemented: true
 
 ## Acceptance Criteria
 
-- [ ] **Given** I run `claude-logs serve`, **When** the server starts, **Then** HTML is generated before the server begins listening
-- [ ] **Given** I run `claude-logs serve --dir /custom/path`, **When** the server starts, **Then** HTML is generated to `/custom/path` and served from there
-- [ ] **Given** I run `claude-logs serve` without --dir, **When** the server starts, **Then** default output directory is `~/claude-code-logs/` (not `~/.claude-logs/`)
+- [ ] **Given** I run `claude-code-logs serve`, **When** the server starts, **Then** HTML is generated before the server begins listening
+- [ ] **Given** I run `claude-code-logs serve --dir /custom/path`, **When** the server starts, **Then** HTML is generated to `/custom/path` and served from there
+- [ ] **Given** I run `claude-code-logs serve` without --dir, **When** the server starts, **Then** default output directory is `~/claude-code-logs/` (not `~/.claude-code-logs/`)
 - [ ] **Given** the output directory doesn't exist, **When** serve runs, **Then** the directory is created automatically
-- [ ] **Given** I run `claude-logs serve -d /path`, **When** the server starts, **Then** `-d` works as short form of `--dir`
-- [ ] **Given** I run `claude-logs serve --output-dir`, **When** parsing flags, **Then** flag is not recognized (old flag removed)
-- [ ] **Given** I run `claude-logs serve -o`, **When** parsing flags, **Then** flag is not recognized (old flag removed)
+- [ ] **Given** I run `claude-code-logs serve -d /path`, **When** the server starts, **Then** `-d` works as short form of `--dir`
+- [ ] **Given** I run `claude-code-logs serve --output-dir`, **When** parsing flags, **Then** flag is not recognized (old flag removed)
+- [ ] **Given** I run `claude-code-logs serve -o`, **When** parsing flags, **Then** flag is not recognized (old flag removed)
 
 ## Technical Notes
 

@@ -28,26 +28,26 @@ Command-line interface that orchestrates all components (parser, generator, serv
 
 ```bash
 # One-time generation
-claude-logs generate [--output-dir PATH]
+claude-code-logs generate [--output-dir PATH]
 
 # Start server (primary mode)
-claude-logs serve [--port PORT] [--output-dir PATH]
+claude-code-logs serve [--port PORT] [--output-dir PATH]
 
 # Start watcher (background regeneration)
-claude-logs watch [--output-dir PATH] [--interval SECONDS]
+claude-code-logs watch [--output-dir PATH] [--interval SECONDS]
 
 # Combined: serve + watch
-claude-logs serve --watch [--port PORT] [--output-dir PATH]
+claude-code-logs serve --watch [--port PORT] [--output-dir PATH]
 
 # Show version
-claude-logs version
+claude-code-logs version
 ```
 
 ### Flags
 
 | Flag | Default | Description |
 |------|---------|-------------|
-| `--output-dir` | `~/.claude-logs` | Output directory for HTML |
+| `--output-dir` | `~/.claude-code-logs` | Output directory for HTML |
 | `--port` | `8080` | Server port |
 | `--interval` | `30` | Watch poll interval (seconds) |
 | `--watch` | `false` | Enable watch mode with serve |
@@ -56,8 +56,8 @@ claude-logs version
 ### Configuration File (optional)
 
 ```yaml
-# ~/.claude-logs.yaml
-output_dir: ~/.claude-logs
+# ~/.claude-code-logs.yaml
+output_dir: ~/.claude-code-logs
 port: 8080
 watch_interval: 30
 ```
@@ -93,7 +93,7 @@ watch_interval: 30
 ## Success Criteria
 
 - [ ] All commands work as documented
-- [ ] Sensible defaults (works with just `claude-logs serve`)
+- [ ] Sensible defaults (works with just `claude-code-logs serve`)
 - [ ] Clear error messages
 - [ ] Graceful shutdown on Ctrl+C
 - [ ] Help text for all commands

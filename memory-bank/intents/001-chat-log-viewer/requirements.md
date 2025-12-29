@@ -19,7 +19,7 @@ CLI tool that scans `~/.claude/projects`, parses JSONL chat logs, generates brow
 | Browse Claude Code chat history visually | Can navigate all projects/sessions in browser | Must |
 | Search across conversations | Find messages by content within seconds | Must |
 | Keep output updated automatically | Watch mode detects new sessions in < 1 min | Should |
-| Zero-config quick start | `claude-logs serve` works immediately | Must |
+| Zero-config quick start | `claude-code-logs serve` works immediately | Must |
 
 ---
 
@@ -65,7 +65,7 @@ CLI tool that scans `~/.claude/projects`, parses JSONL chat logs, generates brow
 ### FR-4: Server Mode
 - **Description**: Serve generated HTML with search API
 - **Acceptance Criteria**:
-  - `claude-logs serve` starts HTTP server on configurable port
+  - `claude-code-logs serve` starts HTTP server on configurable port
   - Serves static HTML files
   - Provides `/api/search` endpoint for full-text search
   - Displays server URL on startup
@@ -86,7 +86,7 @@ CLI tool that scans `~/.claude/projects`, parses JSONL chat logs, generates brow
 ### FR-6: Watch Mode
 - **Description**: Monitor for new sessions and regenerate HTML
 - **Acceptance Criteria**:
-  - `claude-logs watch` monitors `~/.claude/projects/` for changes
+  - `claude-code-logs watch` monitors `~/.claude/projects/` for changes
   - Regenerates affected HTML within 60 seconds of change
   - Can run alongside server mode
   - Configurable poll interval
@@ -98,7 +98,7 @@ CLI tool that scans `~/.claude/projects`, parses JSONL chat logs, generates brow
 - **Acceptance Criteria**:
   - Navigation and viewing works without server
   - Search UI shows "Start server for search" message
-  - Displays the command to start server: `claude-logs serve`
+  - Displays the command to start server: `claude-code-logs serve`
   - No JavaScript errors when opened as file://
 - **Priority**: Must
 - **Related Stories**: TBD
@@ -106,10 +106,10 @@ CLI tool that scans `~/.claude/projects`, parses JSONL chat logs, generates brow
 ### FR-8: CLI Commands
 - **Description**: Provide intuitive CLI interface
 - **Acceptance Criteria**:
-  - `claude-logs generate` - one-time HTML generation
-  - `claude-logs serve` - start server (default port 8080)
-  - `claude-logs watch` - monitor and regenerate
-  - `claude-logs serve --watch` - combined mode
+  - `claude-code-logs generate` - one-time HTML generation
+  - `claude-code-logs serve` - start server (default port 8080)
+  - `claude-code-logs watch` - monitor and regenerate
+  - `claude-code-logs serve --watch` - combined mode
   - `--output-dir` flag to specify output location
   - `--port` flag for server port
 - **Priority**: Must

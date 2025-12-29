@@ -29,10 +29,10 @@ With --watch flag, the server will also:
 - Debounce rapid changes for efficiency
 
 Example:
-  claude-logs serve
-  claude-logs serve --port 3000
-  claude-logs serve --dir /custom/path
-  claude-logs serve --watch  (regenerates on changes)`,
+  claude-code-logs serve
+  claude-code-logs serve --port 3000
+  claude-code-logs serve --dir /custom/path
+  claude-code-logs serve --watch  (regenerates on changes)`,
 	RunE: runServe,
 }
 

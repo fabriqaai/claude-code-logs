@@ -27,7 +27,7 @@ assigned_bolt: 009-resize-persist
 
 ## Technical Notes
 
-- localStorage key: `claude-logs-sidebar`
+- localStorage key: `claude-code-logs-sidebar`
 - Data structure: `{ width: number, collapsed: string[] }`
 - Project IDs: Use `data-project-id` attribute (slugified path)
 - Load state early to prevent flash of expanded/collapsed
@@ -35,7 +35,7 @@ assigned_bolt: 009-resize-persist
 ## JavaScript Implementation
 
 ```javascript
-const STORAGE_KEY = 'claude-logs-sidebar';
+const STORAGE_KEY = 'claude-code-logs-sidebar';
 
 function loadSidebarState() {
   try {

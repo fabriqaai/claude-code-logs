@@ -39,7 +39,7 @@ created: 2025-12-29T17:25:00Z
 
 ### Manual Testing Performed
 
-1. Started server with `./claude-logs serve --port 8099`
+1. Started server with `./claude-code-logs serve --port 8099`
 2. Verified index page (`/`) contains tree view HTML structure
 3. Verified CSS classes for tree components present
 4. Verified JavaScript for expand/collapse present

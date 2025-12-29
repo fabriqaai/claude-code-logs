@@ -15,7 +15,7 @@ Simplify CLI from 4 commands (generate, serve, watch, version) to 2 commands (se
 - Simplified CLI with only `serve` and `version` commands
 - Auto-generation on serve startup (always, not just when dir missing)
 - Renamed flag `--dir`/`-d` (was `--output-dir`/`-o`)
-- New default output directory `~/claude-code-logs/` (was `~/.claude-logs`)
+- New default output directory `~/claude-code-logs/` (was `~/.claude-code-logs`)
 - Legacy command handlers showing migration messages
 - Updated documentation
 
@@ -27,7 +27,7 @@ Simplify CLI from 4 commands (generate, serve, watch, version) to 2 commands (se
 
 1. **Delete cmd_generate.go and cmd_watch.go** - Remove command files entirely
 2. **Update main.go**:
-   - Change default output from `~/.claude-logs` to `~/claude-code-logs/`
+   - Change default output from `~/.claude-code-logs` to `~/claude-code-logs/`
    - Rename `--output-dir`/`-o` to `--dir`/`-d`
    - Remove command registrations for generate and watch
    - Add hidden legacy commands that show migration messages
@@ -42,9 +42,9 @@ Simplify CLI from 4 commands (generate, serve, watch, version) to 2 commands (se
 
 ### Acceptance Criteria
 
-- [ ] `claude-logs serve` generates HTML then starts server
-- [ ] `claude-logs serve --watch` enables file watching
-- [ ] `claude-logs serve --dir /path` uses custom directory
+- [ ] `claude-code-logs serve` generates HTML then starts server
+- [ ] `claude-code-logs serve --watch` enables file watching
+- [ ] `claude-code-logs serve --dir /path` uses custom directory
 - [ ] Default output is `~/claude-code-logs/`
 - [ ] Old commands show helpful migration messages
 - [ ] All existing tests pass

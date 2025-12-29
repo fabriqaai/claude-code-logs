@@ -19,11 +19,11 @@ implemented: true
 
 ## Acceptance Criteria
 
-- [ ] **Given** I run `claude-logs generate`, **When** the command executes, **Then** I see a helpful message: "Command removed. Use 'claude-logs serve' instead (generates automatically on startup)"
-- [ ] **Given** I run `claude-logs watch`, **When** the command executes, **Then** I see a helpful message: "Command removed. Use 'claude-logs serve --watch' instead"
+- [ ] **Given** I run `claude-code-logs generate`, **When** the command executes, **Then** I see a helpful message: "Command removed. Use 'claude-code-logs serve' instead (generates automatically on startup)"
+- [ ] **Given** I run `claude-code-logs watch`, **When** the command executes, **Then** I see a helpful message: "Command removed. Use 'claude-code-logs serve --watch' instead"
 - [ ] **Given** `cmd/generate.go` exists, **When** refactoring is complete, **Then** the file is deleted
 - [ ] **Given** `cmd/watch.go` exists, **When** refactoring is complete, **Then** the file is deleted
-- [ ] **Given** I run `claude-logs --help`, **When** viewing help, **Then** I only see `serve` and `version` commands listed
+- [ ] **Given** I run `claude-code-logs --help`, **When** viewing help, **Then** I only see `serve` and `version` commands listed
 
 ## Technical Notes
 

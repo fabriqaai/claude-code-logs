@@ -134,13 +134,13 @@ Simplify the CLI interface by reducing commands from 4 to 2, changing default ou
 ## Success Criteria
 
 ### Functional
-- [ ] `claude-logs serve` generates HTML then starts server
-- [ ] `claude-logs serve --watch` enables file watching
-- [ ] `claude-logs serve --dir /path` uses custom directory
+- [ ] `claude-code-logs serve` generates HTML then starts server
+- [ ] `claude-code-logs serve --watch` enables file watching
+- [ ] `claude-code-logs serve --dir /path` uses custom directory
 - [ ] Default output is `~/claude-code-logs/`
-- [ ] `claude-logs generate` shows helpful error
-- [ ] `claude-logs watch` shows helpful error
-- [ ] `claude-logs version` works unchanged
+- [ ] `claude-code-logs generate` shows helpful error
+- [ ] `claude-code-logs watch` shows helpful error
+- [ ] `claude-code-logs version` works unchanged
 
 ### Non-Functional
 - [ ] No regression in existing functionality
@@ -165,4 +165,4 @@ Simplify the CLI interface by reducing commands from 4 to 2, changing default ou
 
 This is a small, focused refactoring. All changes are localized to the CLI layer. The underlying parser, generator, server, and watcher logic remain unchanged.
 
-Consider: Should old commands (`generate`, `watch`) fail silently, show deprecation warning, or show helpful migration message? Recommendation: Show helpful message like "Command removed. Use 'claude-logs serve' instead."
+Consider: Should old commands (`generate`, `watch`) fail silently, show deprecation warning, or show helpful migration message? Recommendation: Show helpful message like "Command removed. Use 'claude-code-logs serve' instead."
