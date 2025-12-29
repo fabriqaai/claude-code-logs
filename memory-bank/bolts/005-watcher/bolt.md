@@ -3,13 +3,13 @@ id: 005-watcher
 unit: 004-watcher
 intent: 001-chat-log-viewer
 type: simple-construction-bolt
-status: in-progress
+status: completed
 stories:
   - 001-watch-changes
 created: 2025-12-29T12:45:00Z
 started: 2025-12-29T13:00:00Z
-completed: null
-current_stage: test
+completed: 2025-12-29T13:35:00Z
+current_stage: null
 stages_completed:
   - name: plan
     completed: 2025-12-29T13:05:00Z
@@ -17,6 +17,9 @@ stages_completed:
   - name: implement
     completed: 2025-12-29T13:20:00Z
     artifact: implementation-walkthrough.md
+  - name: test
+    completed: 2025-12-29T13:35:00Z
+    artifact: test-walkthrough.md
 
 # Bolt Dependencies
 requires_bolts:
@@ -56,9 +59,9 @@ Implement file watching with fsnotify, debouncing, and incremental regeneration 
 
 ## Stages
 
-- [ ] **1. Plan**: Pending → `implementation-plan.md`
-- [ ] **2. Implement**: Pending → Source code + `implementation-walkthrough.md`
-- [ ] **3. Test**: Pending → Tests + `test-walkthrough.md`
+- [x] **1. Plan**: Complete → `implementation-plan.md`
+- [x] **2. Implement**: Complete → Source code + `implementation-walkthrough.md`
+- [x] **3. Test**: Complete → Tests + `test-walkthrough.md`
 
 ## Dependencies
 
@@ -72,14 +75,14 @@ Implement file watching with fsnotify, debouncing, and incremental regeneration 
 
 ## Success Criteria
 
-- [ ] Detects new .jsonl files within poll interval
-- [ ] Detects modified .jsonl files
-- [ ] Debounces rapid changes (2 second delay)
-- [ ] Only regenerates affected project's HTML
-- [ ] Configurable poll interval via --interval flag
-- [ ] Graceful shutdown on Ctrl+C
-- [ ] Works alongside server mode (serve --watch)
-- [ ] Tests passing
+- [x] Detects new .jsonl files within poll interval
+- [x] Detects modified .jsonl files
+- [x] Debounces rapid changes (2 second delay)
+- [x] Only regenerates affected project's HTML
+- [x] Configurable poll interval via --interval flag
+- [x] Graceful shutdown on Ctrl+C
+- [x] Works alongside server mode (serve --watch)
+- [x] Tests passing
 
 ## Notes
 
