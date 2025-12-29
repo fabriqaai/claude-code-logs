@@ -2,7 +2,7 @@
 unit: 002-generator
 intent: 001-chat-log-viewer
 phase: inception
-status: draft
+status: complete
 ---
 
 # Unit Brief: generator

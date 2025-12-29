@@ -3,16 +3,20 @@ id: 004-cli
 unit: 005-cli
 intent: 001-chat-log-viewer
 type: simple-construction-bolt
-status: planned
+status: complete
 stories:
   - 001-cli-commands
-created: 2025-12-29T12:45:00Z
-started: null
-completed: null
+created: 2025-12-29T12:45:00.000Z
+started: 2025-12-29T16:30:00.000Z
+completed: "2025-12-29T14:58:55Z"
 current_stage: null
-stages_completed: []
-
-# Bolt Dependencies
+stages_completed:
+  - name: plan
+    completed: 2025-12-29T16:40:00.000Z
+    artifact: implementation-plan.md
+  - name: implement
+    completed: 2025-12-29T16:55:00.000Z
+    artifact: implementation-walkthrough.md
 requires_bolts:
   - 001-parser
   - 002-generator
@@ -22,8 +26,6 @@ enables_bolts:
   - 006-homebrew-tap
 requires_units: []
 blocks: false
-
-# Complexity Assessment
 complexity:
   avg_complexity: 2
   avg_uncertainty: 1

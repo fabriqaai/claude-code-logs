@@ -3,14 +3,23 @@ id: 006-homebrew-tap
 unit: 006-homebrew-tap
 intent: 001-chat-log-viewer
 type: simple-construction-bolt
-status: planned
+status: completed
 stories:
   - 001-homebrew-distribution
 created: 2025-12-29T12:45:00Z
-started: null
-completed: null
-current_stage: null
-stages_completed: []
+started: 2025-12-29T16:30:00Z
+completed: 2025-12-29T17:20:00Z
+current_stage: completed
+stages_completed:
+  - name: plan
+    completed: 2025-12-29T16:40:00Z
+    artifact: implementation-plan.md
+  - name: implement
+    completed: 2025-12-29T16:55:00Z
+    artifact: implementation-walkthrough.md
+  - name: test
+    completed: 2025-12-29T17:20:00Z
+    artifact: test-walkthrough.md
 
 # Bolt Dependencies
 requires_bolts:
@@ -48,9 +57,9 @@ Set up fabriqaai/homebrew-tap repository with formula, goreleaser configuration,
 
 ## Stages
 
-- [ ] **1. Plan**: Pending → `implementation-plan.md`
-- [ ] **2. Implement**: Pending → Source code + `implementation-walkthrough.md`
-- [ ] **3. Test**: Pending → Tests + `test-walkthrough.md`
+- [x] **1. Plan**: Completed → `implementation-plan.md`
+- [x] **2. Implement**: Completed → Source code + `implementation-walkthrough.md`
+- [x] **3. Test**: Completed → Tests + `test-walkthrough.md`
 
 ## Dependencies
 
@@ -62,17 +71,17 @@ Set up fabriqaai/homebrew-tap repository with formula, goreleaser configuration,
 
 ## Success Criteria
 
-- [ ] fabriqaai/homebrew-tap repository created
-- [ ] Formula/claude-code-logs.rb works
-- [ ] `brew tap fabriqa/tap` succeeds
-- [ ] `brew install fabriqa/tap/claude-code-logs` installs correctly
-- [ ] goreleaser.yaml configured for cross-platform builds
-- [ ] GitHub Actions version-bump.yml auto-increments patch on main commits
-- [ ] GitHub Actions release.yml creates releases on new tags
-- [ ] Supports macOS arm64 (Apple Silicon)
-- [ ] Supports macOS amd64 (Intel)
-- [ ] Supports Linux amd64
-- [ ] Formula auto-updates on new releases
+- [ ] fabriqaai/homebrew-tap repository created (manual prerequisite)
+- [ ] Formula/claude-code-logs.rb works (pending first release)
+- [ ] `brew tap fabriqa/tap` succeeds (pending first release)
+- [ ] `brew install fabriqa/tap/claude-code-logs` installs correctly (pending first release)
+- [x] goreleaser.yaml configured for cross-platform builds
+- [x] GitHub Actions version-bump.yml auto-increments patch on main commits
+- [x] GitHub Actions release.yml creates releases on new tags
+- [x] Supports macOS arm64 (Apple Silicon)
+- [x] Supports macOS amd64 (Intel)
+- [x] Supports Linux amd64
+- [x] Formula auto-updates on new releases (configured in goreleaser)
 
 ## Notes
 

@@ -1,0 +1,77 @@
+# goreleaser configuration for claude-code-logs
+# Docs: https://goreleaser.com
+
+version: 2
+
+before:
+  hooks:
+    - go mod tidy
+
+builds:
+  - id: claude-code-logs
+    binary: claude-code-logs
+    main: .
+    env:
+      - CGO_ENABLED=0
+    goos:
+      - darwin
+      - linux
+    goarch:
+      - amd64
+      - arm64
+    ignore:
+      - goos: linux
+        goarch: arm64
+    ldflags:
+      - -s -w
+      - -X main.version={{.Version}}
+      - -X main.commit={{.ShortCommit}}
+      - -X main.date={{.Date}}
+
+archives:
+  - id: default
+    format: tar.gz
+    name_template: >-
+      {{ .ProjectName }}_
+      {{- .Version }}_
+      {{- .Os }}_
+      {{- .Arch }}
+    files:
+      - LICENSE*
+      - README*
+
+checksum:
+  name_template: 'checksums.txt'
+
+changelog:
+  sort: asc
+  filters:
+    exclude:
+      - '^docs:'
+      - '^test:'
+      - '^chore:'
+      - Merge pull request
+      - Merge branch
+
+brews:
+  - name: claude-code-logs
+    repository:
+      owner: fabriqaai
+      name: homebrew-tap
+      token: "{{ .Env.HOMEBREW_TAP_TOKEN }}"
+    directory: Formula
+    homepage: "https://github.com/fabriqaai/claude-code-logs"
+    description: "Browse and search Claude Code chat logs"
+    license: "MIT"
+    install: |
+      bin.install "claude-code-logs"
+    test: |
+      system "#{bin}/claude-code-logs", "version"
+
+release:
+  github:
+    owner: fabriqaai
+    name: claude-code-logs
+  draft: false
+  prerelease: auto
+  name_template: "v{{.Version}}"

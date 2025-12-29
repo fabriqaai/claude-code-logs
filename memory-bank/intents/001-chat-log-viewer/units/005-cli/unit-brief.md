@@ -2,7 +2,7 @@
 unit: 005-cli
 intent: 001-chat-log-viewer
 phase: inception
-status: draft
+status: complete
 ---
 
 # Unit Brief: cli
