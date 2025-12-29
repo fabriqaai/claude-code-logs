@@ -142,8 +142,9 @@ func ParseSession(filePath string, sessionID string) (*Session, error) {
 	defer file.Close()
 
 	session := &Session{
-		ID:       sessionID,
-		Messages: []Message{},
+		ID:         sessionID,
+		Messages:   []Message{},
+		SourcePath: filePath,
 	}
 
 	scanner := bufio.NewScanner(file)

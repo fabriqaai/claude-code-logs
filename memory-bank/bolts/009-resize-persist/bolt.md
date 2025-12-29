@@ -3,8 +3,20 @@ bolt-id: "009-resize-persist"
 bolt_type: "simple-construction-bolt"
 intent: "003-tree-view-sidebar"
 unit: "002-resize-persist"
-status: planned
+status: completed
 created: 2025-12-29T16:00:00Z
+started: 2025-12-29T18:00:00Z
+completed: 2025-12-29T19:00:00Z
+current_stage: test
+stages_completed:
+  - name: plan
+    completed: 2025-12-29T18:05:00Z
+    artifact: implementation-plan.md
+  - name: implement
+    completed: 2025-12-29T18:45:00Z
+    artifact: implementation-walkthrough.md
+  - name: test
+    completed: 2025-12-29T19:00:00Z
 stories:
   - "001-resize-handle"
   - "002-localstorage"
@@ -45,23 +57,28 @@ Add resizable sidebar width, localStorage persistence for UI state, and mobile h
 2. **localStorage**: Save/load functions, integrate with resize and collapse
 3. **Mobile**: CSS media query, hamburger button, overlay logic
 
-## Files to Modify
+## Files Modified
 
 | File | Changes |
 |------|---------|
-| `templates.go` | Add resize handle HTML/CSS/JS, localStorage logic, mobile menu |
+| `templates_css.go` | CSS for resize handle, mobile menu, backdrop |
+| `templates_index.go` | Index page with full sidebar functionality |
+| `templates_project.go` | Project page with full sidebar functionality |
+| `templates_session.go` | Session page with full sidebar functionality |
+
+Note: Original `templates.go` was split into 4 files for maintainability.
 
 ## Acceptance Criteria
 
-- [ ] Resize handle visible and functional
-- [ ] Width clamps between 200-500px
-- [ ] Width persists across page loads
-- [ ] Collapsed projects persist across page loads
-- [ ] Mobile: hamburger button appears < 768px
-- [ ] Mobile: sidebar slides in as overlay
-- [ ] Backdrop click closes overlay
-- [ ] Tests pass
-- [ ] Build succeeds
+- [x] Resize handle visible and functional
+- [x] Width clamps between 200-500px
+- [x] Width persists across page loads
+- [x] Collapsed projects persist across page loads
+- [x] Mobile: hamburger button appears < 768px
+- [x] Mobile: sidebar slides in as overlay
+- [x] Backdrop click closes overlay
+- [x] Tests pass
+- [x] Build succeeds
 
 ## Dependencies
 

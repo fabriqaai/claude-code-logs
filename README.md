@@ -6,8 +6,13 @@ Browse and search your Claude Code chat logs with a local web interface.
 
 - **HTML Generation**: Converts JSONL chat logs to browsable HTML pages
 - **Full-Text Search**: Search across all messages with highlighted results
+- **Tree View Sidebar**: Collapsible project/session tree with resizable width
+- **Card-Based Layout**: Clean card views for projects and sessions
+- **Breadcrumb Navigation**: Easy navigation back to projects from sessions
+- **Source File Links**: Quick access to original JSONL files
 - **File Watching**: Auto-regenerate when chat logs change
 - **Local Server**: Browse your logs at `http://localhost:8080`
+- **Mobile Responsive**: Works on desktop and mobile devices
 - **Cross-Platform**: macOS (Intel & Apple Silicon) and Linux
 
 ## Installation

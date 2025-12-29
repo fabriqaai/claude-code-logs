@@ -14,11 +14,12 @@ type Project struct {
 
 // Session represents a single chat session
 type Session struct {
-	ID        string    // UUID from filename
-	Summary   string    // Session title from summary entry
-	Messages  []Message // All messages in the session
-	CreatedAt time.Time // First message timestamp
-	UpdatedAt time.Time // Last message timestamp
+	ID         string    // UUID from filename
+	Summary    string    // Session title from summary entry
+	Messages   []Message // All messages in the session
+	CreatedAt  time.Time // First message timestamp
+	UpdatedAt  time.Time // Last message timestamp
+	SourcePath string    // Full path to source JSONL file
 }
 
 // Message represents a single message in a session
