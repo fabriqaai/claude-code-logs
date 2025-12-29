@@ -108,16 +108,16 @@ func (idx *SearchIndex) Search(query, projectFilter, sessionFilter string) []Sea
 		return []SearchResult{}
 	}
 
-	// Tokenize query
-	queryTerms := tokenize(query)
-	if len(queryTerms) == 0 {
+	// Parse query to extract phrases and terms
+	parsed := parseQuery(query)
+	if len(parsed.Terms) == 0 && len(parsed.Phrases) == 0 {
 		return []SearchResult{}
 	}
 
 	// Find messages containing all query terms (AND logic)
-	matchingIndices := idx.findMatchingMessages(queryTerms)
+	matchingIndices := idx.findMatchingMessages(parsed.Terms)
 
-	// Apply filters and group by session
+	// Apply filters, phrase matching, and group by session
 	sessionMatches := make(map[string][]int) // sessionKey -> message indices
 	for _, msgIdx := range matchingIndices {
 		msg := idx.messages[msgIdx]
@@ -130,6 +130,21 @@ func (idx *SearchIndex) Search(query, projectFilter, sessionFilter string) []Sea
 		// Apply session filter
 		if sessionFilter != "" && msg.SessionID != sessionFilter {
 			continue
+		}
+
+		// Apply phrase filter - check that all phrases appear in the content
+		if len(parsed.Phrases) > 0 {
+			lowerContent := strings.ToLower(msg.Content)
+			allPhrasesMatch := true
+			for _, phrase := range parsed.Phrases {
+				if !strings.Contains(lowerContent, phrase) {
+					allPhrasesMatch = false
+					break
+				}
+			}
+			if !allPhrasesMatch {
+				continue
+			}
 		}
 
 		sessionKey := msg.ProjectSlug + "|" + msg.SessionID
@@ -154,7 +169,7 @@ func (idx *SearchIndex) Search(query, projectFilter, sessionFilter string) []Sea
 
 		for _, msgIdx := range indices {
 			msg := idx.messages[msgIdx]
-			highlighted := highlightMatches(msg.Content, queryTerms)
+			highlighted := highlightMatchesWithPhrases(msg.Content, parsed.Terms, parsed.Phrases)
 			result.Matches = append(result.Matches, MatchResult{
 				MessageID: msg.MessageID,
 				Role:      msg.Role,
@@ -232,6 +247,50 @@ func extractTextContent(msg Message) string {
 	return strings.Join(parts, " ")
 }
 
+// ParsedQuery represents a parsed search query with terms and phrases
+type ParsedQuery struct {
+	Terms   []string // Individual words (for index lookup)
+	Phrases []string // Exact phrases to match (from quoted strings)
+}
+
+// parseQuery extracts quoted phrases and individual terms from a query
+func parseQuery(query string) ParsedQuery {
+	var result ParsedQuery
+
+	// Extract quoted phrases
+	quoteRegex := regexp.MustCompile(`"([^"]+)"`)
+	matches := quoteRegex.FindAllStringSubmatch(query, -1)
+	for _, match := range matches {
+		if len(match) > 1 && strings.TrimSpace(match[1]) != "" {
+			result.Phrases = append(result.Phrases, strings.ToLower(strings.TrimSpace(match[1])))
+		}
+	}
+
+	// Remove quoted parts from query to get remaining terms
+	remaining := quoteRegex.ReplaceAllString(query, " ")
+	result.Terms = tokenize(remaining)
+
+	// Also add tokenized versions of phrases for index lookup
+	for _, phrase := range result.Phrases {
+		phraseTerms := tokenize(phrase)
+		for _, term := range phraseTerms {
+			// Add if not already present
+			found := false
+			for _, existing := range result.Terms {
+				if existing == term {
+					found = true
+					break
+				}
+			}
+			if !found {
+				result.Terms = append(result.Terms, term)
+			}
+		}
+	}
+
+	return result
+}
+
 // tokenize splits text into lowercase terms
 func tokenize(text string) []string {
 	// Convert to lowercase
@@ -261,13 +320,28 @@ func tokenize(text string) []string {
 
 // highlightMatches wraps matching terms in <mark> tags and extracts context
 func highlightMatches(content string, terms []string) string {
+	return highlightMatchesWithPhrases(content, terms, nil)
+}
+
+// highlightMatchesWithPhrases wraps matching terms and phrases in <mark> tags and extracts context
+func highlightMatchesWithPhrases(content string, terms []string, phrases []string) string {
 	// Limit content length for display
 	const maxLength = 500
 	const contextChars = 100
 
-	// Find first match position
+	// Find first match position (check phrases first, then terms)
 	lowerContent := strings.ToLower(content)
 	firstMatchPos := -1
+
+	// Check phrases first (they're more specific)
+	for _, phrase := range phrases {
+		pos := strings.Index(lowerContent, phrase)
+		if pos != -1 && (firstMatchPos == -1 || pos < firstMatchPos) {
+			firstMatchPos = pos
+		}
+	}
+
+	// Then check individual terms
 	for _, term := range terms {
 		pos := strings.Index(lowerContent, term)
 		if pos != -1 && (firstMatchPos == -1 || pos < firstMatchPos) {
@@ -302,7 +376,16 @@ func highlightMatches(content string, terms []string) string {
 	}
 
 	// Highlight matches (case-insensitive)
+	// Highlight phrases first (longer matches take precedence)
 	result := excerpt
+	for _, phrase := range phrases {
+		pattern := regexp.MustCompile(`(?i)` + regexp.QuoteMeta(phrase))
+		result = pattern.ReplaceAllStringFunc(result, func(match string) string {
+			return "<mark>" + match + "</mark>"
+		})
+	}
+
+	// Then highlight individual terms (skip if already inside a mark tag)
 	for _, term := range terms {
 		// Create case-insensitive regex
 		pattern := regexp.MustCompile(`(?i)` + regexp.QuoteMeta(term))

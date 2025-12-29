@@ -440,6 +440,192 @@ func TestExtractTextContent(t *testing.T) {
 	}
 }
 
+func TestParseQuery(t *testing.T) {
+	tests := []struct {
+		name            string
+		query           string
+		expectedTerms   []string
+		expectedPhrases []string
+	}{
+		{
+			name:            "simple words",
+			query:           "hello world",
+			expectedTerms:   []string{"hello", "world"},
+			expectedPhrases: nil,
+		},
+		{
+			name:            "single quoted phrase",
+			query:           `"hello world"`,
+			expectedTerms:   []string{"hello", "world"},
+			expectedPhrases: []string{"hello world"},
+		},
+		{
+			name:            "phrase with extra terms",
+			query:           `"hello world" foo bar`,
+			expectedTerms:   []string{"foo", "bar", "hello", "world"},
+			expectedPhrases: []string{"hello world"},
+		},
+		{
+			name:            "multiple phrases",
+			query:           `"hello world" "foo bar"`,
+			expectedTerms:   []string{"hello", "world", "foo", "bar"},
+			expectedPhrases: []string{"hello world", "foo bar"},
+		},
+		{
+			name:            "empty quotes",
+			query:           `"" hello`,
+			expectedTerms:   []string{"hello"},
+			expectedPhrases: nil,
+		},
+		{
+			name:            "phrase with special chars",
+			query:           `"func main()"`,
+			expectedTerms:   []string{"func", "main"},
+			expectedPhrases: []string{"func main()"},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			result := parseQuery(tt.query)
+
+			// Check phrases
+			if len(result.Phrases) != len(tt.expectedPhrases) {
+				t.Errorf("parseQuery(%q).Phrases = %v, want %v", tt.query, result.Phrases, tt.expectedPhrases)
+			} else {
+				for i, phrase := range result.Phrases {
+					if phrase != tt.expectedPhrases[i] {
+						t.Errorf("parseQuery(%q).Phrases[%d] = %q, want %q", tt.query, i, phrase, tt.expectedPhrases[i])
+					}
+				}
+			}
+
+			// Check that all expected terms are present (order may vary)
+			termSet := make(map[string]bool)
+			for _, term := range result.Terms {
+				termSet[term] = true
+			}
+			for _, expected := range tt.expectedTerms {
+				if !termSet[expected] {
+					t.Errorf("parseQuery(%q).Terms missing %q, got %v", tt.query, expected, result.Terms)
+				}
+			}
+		})
+	}
+}
+
+func TestSearchIndex_Search_PhraseQuery(t *testing.T) {
+	now := time.Now()
+	projects := []Project{
+		{
+			Path:       "/Users/test/project1",
+			FolderName: "-Users-test-project1",
+			Sessions: []Session{
+				{
+					ID:      "session-1",
+					Summary: "Test Session",
+					Messages: []Message{
+						{
+							UUID:      "msg-1",
+							Role:      "user",
+							Timestamp: now,
+							Content: []ContentBlock{
+								{Type: "text", Text: "Hello world, how are you today?"},
+							},
+						},
+						{
+							UUID:      "msg-2",
+							Role:      "assistant",
+							Timestamp: now.Add(time.Second),
+							Content: []ContentBlock{
+								{Type: "text", Text: "Hello there! The world is great."},
+							},
+						},
+						{
+							UUID:      "msg-3",
+							Role:      "user",
+							Timestamp: now.Add(2 * time.Second),
+							Content: []ContentBlock{
+								{Type: "text", Text: "world hello reversed"},
+							},
+						},
+					},
+				},
+			},
+		},
+	}
+
+	idx := NewSearchIndex(projects)
+
+	// Search for exact phrase "hello world" - should only match msg-1
+	results := idx.Search(`"hello world"`, "", "")
+
+	if len(results) != 1 {
+		t.Fatalf("Search for phrase returned %d session results, want 1", len(results))
+	}
+
+	// Only msg-1 has "hello world" as an exact phrase
+	if len(results[0].Matches) != 1 {
+		t.Errorf("Search for phrase returned %d matches, want 1 (only msg-1 has exact phrase)", len(results[0].Matches))
+	}
+
+	if results[0].Matches[0].MessageID != "msg-1" {
+		t.Errorf("Expected match on msg-1, got %s", results[0].Matches[0].MessageID)
+	}
+}
+
+func TestSearchIndex_Search_PhraseWithTerms(t *testing.T) {
+	now := time.Now()
+	projects := []Project{
+		{
+			Path:       "/Users/test/project1",
+			FolderName: "-Users-test-project1",
+			Sessions: []Session{
+				{
+					ID:      "session-1",
+					Summary: "Test Session",
+					Messages: []Message{
+						{
+							UUID:      "msg-1",
+							Role:      "user",
+							Timestamp: now,
+							Content: []ContentBlock{
+								{Type: "text", Text: "Hello world, let me help you with Go programming"},
+							},
+						},
+						{
+							UUID:      "msg-2",
+							Role:      "assistant",
+							Timestamp: now.Add(time.Second),
+							Content: []ContentBlock{
+								{Type: "text", Text: "Hello world! I love Python programming."},
+							},
+						},
+					},
+				},
+			},
+		},
+	}
+
+	idx := NewSearchIndex(projects)
+
+	// Search for phrase "hello world" AND term "go"
+	results := idx.Search(`"hello world" go`, "", "")
+
+	if len(results) != 1 {
+		t.Fatalf("Search returned %d session results, want 1", len(results))
+	}
+
+	// Only msg-1 has both "hello world" phrase AND "go" term
+	if len(results[0].Matches) != 1 {
+		t.Errorf("Search returned %d matches, want 1", len(results[0].Matches))
+	}
+
+	if results[0].Matches[0].MessageID != "msg-1" {
+		t.Errorf("Expected match on msg-1, got %s", results[0].Matches[0].MessageID)
+	}
+}
+
 func TestSearchIndex_SkipsToolBlocks(t *testing.T) {
 	now := time.Now()
 	projects := []Project{
