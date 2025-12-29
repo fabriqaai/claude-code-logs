@@ -1,9 +1,14 @@
 ---
 bolt-id: "009-resize-persist"
+bolt_type: "simple-construction-bolt"
 intent: "003-tree-view-sidebar"
 unit: "002-resize-persist"
 status: planned
 created: 2025-12-29T16:00:00Z
+stories:
+  - "001-resize-handle"
+  - "002-localstorage"
+  - "003-mobile-menu"
 ---
 
 # Bolt 009: Resize & Persist

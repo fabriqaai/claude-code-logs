@@ -1,9 +1,27 @@
 ---
 bolt-id: "008-tree-view"
+bolt_type: "simple-construction-bolt"
 intent: "003-tree-view-sidebar"
 unit: "001-tree-view"
-status: planned
+status: complete
 created: 2025-12-29T16:00:00Z
+started: 2025-12-29T17:00:00Z
+completed: 2025-12-29T17:30:00Z
+current_stage: complete
+stages_completed:
+  - name: plan
+    completed: 2025-12-29T17:05:00Z
+    artifact: implementation-plan.md
+  - name: implement
+    completed: 2025-12-29T17:20:00Z
+    artifact: implementation-walkthrough.md
+  - name: test
+    completed: 2025-12-29T17:30:00Z
+    artifact: test-walkthrough.md
+stories:
+  - "001-tree-markup"
+  - "002-expand-collapse"
+  - "003-visual-polish"
 ---
 
 # Bolt 008: Tree View
@@ -50,13 +68,13 @@ Implement hierarchical tree view for sidebar with expandable/collapsible project
 
 ## Acceptance Criteria
 
-- [ ] Projects render as expandable tree nodes
-- [ ] Sessions nested under parent projects
-- [ ] Chevron rotates on expand/collapse
-- [ ] 200ms smooth animation
-- [ ] Expand All / Collapse All work
-- [ ] Tests pass
-- [ ] Build succeeds
+- [x] Projects render as expandable tree nodes
+- [x] Sessions nested under parent projects
+- [x] Chevron rotates on expand/collapse
+- [x] 200ms smooth animation
+- [x] Expand All / Collapse All work
+- [x] Tests pass
+- [x] Build succeeds
 
 ## Dependencies
 

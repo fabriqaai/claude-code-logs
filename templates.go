@@ -655,6 +655,175 @@ body {
     outline-offset: 2px;
 }
 
+/* Tree View - Collapsible project hierarchy */
+.tree-controls {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 12px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid var(--border-subtle);
+}
+
+.tree-control-btn {
+    font-family: var(--font-body);
+    font-size: 0.7rem;
+    color: var(--text-muted);
+    background: none;
+    border: 1px solid var(--border-subtle);
+    border-radius: 4px;
+    padding: 4px 8px;
+    cursor: pointer;
+    transition: all var(--transition-fast);
+}
+
+.tree-control-btn:hover {
+    color: var(--text-secondary);
+    border-color: var(--border-medium);
+    background: var(--bg-tertiary);
+}
+
+.tree-control-btn:focus-visible {
+    outline: 2px solid var(--accent-primary);
+    outline-offset: 1px;
+}
+
+.tree-node {
+    margin-bottom: 2px;
+}
+
+.tree-node-header {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.tree-toggle {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 20px;
+    height: 20px;
+    padding: 0;
+    border: none;
+    background: none;
+    cursor: pointer;
+    border-radius: 4px;
+    flex-shrink: 0;
+    transition: background-color var(--transition-fast);
+}
+
+.tree-toggle:hover {
+    background: var(--bg-tertiary);
+}
+
+.tree-toggle:focus-visible {
+    outline: 2px solid var(--accent-primary);
+    outline-offset: 1px;
+}
+
+.tree-toggle.hidden {
+    visibility: hidden;
+}
+
+.tree-chevron {
+    width: 12px;
+    height: 12px;
+    color: var(--text-muted);
+    transition: transform 200ms ease-out;
+}
+
+.tree-node.collapsed .tree-chevron {
+    transform: rotate(-90deg);
+}
+
+.tree-node-link {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    align-items: center;
+    padding: 8px 10px;
+    border-radius: 8px;
+    text-decoration: none;
+    color: var(--text-secondary);
+    font-size: 0.875rem;
+    font-weight: 400;
+    transition: all var(--transition-fast);
+    position: relative;
+}
+
+.tree-node-link:hover {
+    background-color: var(--bg-tertiary);
+    color: var(--text-primary);
+}
+
+.tree-node-link.active {
+    background-color: var(--accent-subtle);
+    color: var(--accent-primary);
+    font-weight: 500;
+}
+
+.tree-node-link.active::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 3px;
+    height: 20px;
+    background: var(--accent-primary);
+    border-radius: 0 2px 2px 0;
+}
+
+.tree-node-content {
+    flex: 1;
+    min-width: 0;
+}
+
+.tree-node-name {
+    display: block;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.tree-node-meta {
+    font-size: 0.7rem;
+    color: var(--text-muted);
+    margin-top: 2px;
+    font-weight: 400;
+}
+
+.session-count {
+    background: var(--accent-subtle);
+    color: var(--accent-primary);
+    font-size: 0.65rem;
+    font-weight: 500;
+    padding: 2px 6px;
+    border-radius: 10px;
+    margin-left: 8px;
+    flex-shrink: 0;
+}
+
+.tree-children {
+    max-height: 2000px;
+    overflow: hidden;
+    transition: max-height 200ms ease-out, opacity 200ms ease-out;
+    opacity: 1;
+}
+
+.tree-node.collapsed .tree-children {
+    max-height: 0;
+    opacity: 0;
+}
+
+/* Respect reduced motion preference */
+@media (prefers-reduced-motion: reduce) {
+    .tree-chevron,
+    .tree-children {
+        transition: none;
+    }
+}
+
 /* Search UI */
 .search-container {
     margin-bottom: 24px;
@@ -803,13 +972,39 @@ const indexTemplate = `<!DOCTYPE html>
                     <div class="search-results" id="searchResults"></div>
                 </div>
             </div>
+            <div class="tree-controls">
+                <button type="button" class="tree-control-btn" id="expandAll">Expand All</button>
+                <button type="button" class="tree-control-btn" id="collapseAll">Collapse All</button>
+            </div>
             <ul class="project-list">
-                {{range .Projects}}
-                <li class="project-item">
-                    <a href="{{ProjectSlug .Path}}/index.html" class="project-link">
-                        <span class="project-name">{{.Path}}</span>
-                        <span class="project-meta">{{len .Sessions}} sessions</span>
-                    </a>
+                {{range $project := .Projects}}
+                <li class="tree-node" data-project="{{ProjectSlug $project.Path}}">
+                    <div class="tree-node-header">
+                        <button type="button" class="tree-toggle{{if eq (len $project.Sessions) 0}} hidden{{end}}" aria-expanded="true" aria-label="Toggle {{$project.Path}}">
+                            <svg class="tree-chevron" viewBox="0 0 20 20" fill="currentColor">
+                                <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd"/>
+                            </svg>
+                        </button>
+                        <a href="{{ProjectSlug $project.Path}}/index.html" class="tree-node-link">
+                            <span class="tree-node-content">
+                                <span class="tree-node-name">{{$project.Path}}</span>
+                                <span class="tree-node-meta">{{len $project.Sessions}} sessions</span>
+                            </span>
+                            {{if gt (len $project.Sessions) 0}}<span class="session-count">{{len $project.Sessions}}</span>{{end}}
+                        </a>
+                    </div>
+                    {{if gt (len $project.Sessions) 0}}
+                    <ul class="tree-children session-list">
+                        {{range $project.Sessions}}
+                        <li class="session-item">
+                            <a href="{{ProjectSlug $project.Path}}/{{.ID}}.html" class="session-link">
+                                <span class="session-title">{{.Summary}}</span>
+                                <span class="session-date">{{.CreatedAt.Format "Jan 2, 2006"}}</span>
+                            </a>
+                        </li>
+                        {{end}}
+                    </ul>
+                    {{end}}
                 </li>
                 {{end}}
             </ul>
@@ -852,6 +1047,42 @@ const indexTemplate = `<!DOCTYPE html>
     </div>
     <script>
     (function() {
+        // Tree view toggle functionality
+        document.querySelectorAll('.tree-toggle').forEach(function(btn) {
+            btn.addEventListener('click', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                var node = btn.closest('.tree-node');
+                var isCollapsed = node.classList.toggle('collapsed');
+                btn.setAttribute('aria-expanded', !isCollapsed);
+            });
+        });
+
+        // Expand All / Collapse All
+        var expandAllBtn = document.getElementById('expandAll');
+        var collapseAllBtn = document.getElementById('collapseAll');
+
+        if (expandAllBtn) {
+            expandAllBtn.addEventListener('click', function() {
+                document.querySelectorAll('.tree-node').forEach(function(n) {
+                    n.classList.remove('collapsed');
+                    var toggle = n.querySelector('.tree-toggle');
+                    if (toggle) toggle.setAttribute('aria-expanded', 'true');
+                });
+            });
+        }
+
+        if (collapseAllBtn) {
+            collapseAllBtn.addEventListener('click', function() {
+                document.querySelectorAll('.tree-node').forEach(function(n) {
+                    n.classList.add('collapsed');
+                    var toggle = n.querySelector('.tree-toggle');
+                    if (toggle) toggle.setAttribute('aria-expanded', 'false');
+                });
+            });
+        }
+
+        // Search functionality
         var searchInput = document.getElementById('searchInput');
         var searchResults = document.getElementById('searchResults');
         var debounceTimer;
@@ -944,15 +1175,29 @@ const projectIndexTemplate = `<!DOCTYPE html>
                     <div class="search-results" id="searchResults"></div>
                 </div>
             </div>
+            <div class="tree-controls">
+                <button type="button" class="tree-control-btn" id="expandAll">Expand All</button>
+                <button type="button" class="tree-control-btn" id="collapseAll">Collapse All</button>
+            </div>
             <ul class="project-list">
                 {{range .AllProjects}}
-                <li class="project-item">
-                    <a href="../{{ProjectSlug .Path}}/index.html" class="project-link{{if eq .Path $.Project.Path}} active{{end}}">
-                        <span class="project-name">{{.Path}}</span>
-                        <span class="project-meta">{{len .Sessions}} sessions</span>
-                    </a>
-                    {{if eq .Path $.Project.Path}}
-                    <ul class="session-list">
+                <li class="tree-node{{if ne .Path $.Project.Path}} collapsed{{end}}" data-project="{{ProjectSlug .Path}}">
+                    <div class="tree-node-header">
+                        <button type="button" class="tree-toggle{{if eq (len .Sessions) 0}} hidden{{end}}" aria-expanded="{{if eq .Path $.Project.Path}}true{{else}}false{{end}}" aria-label="Toggle {{.Path}}">
+                            <svg class="tree-chevron" viewBox="0 0 20 20" fill="currentColor">
+                                <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd"/>
+                            </svg>
+                        </button>
+                        <a href="../{{ProjectSlug .Path}}/index.html" class="tree-node-link{{if eq .Path $.Project.Path}} active{{end}}">
+                            <span class="tree-node-content">
+                                <span class="tree-node-name">{{.Path}}</span>
+                                <span class="tree-node-meta">{{len .Sessions}} sessions</span>
+                            </span>
+                            {{if gt (len .Sessions) 0}}<span class="session-count">{{len .Sessions}}</span>{{end}}
+                        </a>
+                    </div>
+                    {{if gt (len .Sessions) 0}}
+                    <ul class="tree-children session-list">
                         {{range .Sessions}}
                         <li class="session-item">
                             <a href="{{.ID}}.html" class="session-link">
@@ -1001,6 +1246,42 @@ const projectIndexTemplate = `<!DOCTYPE html>
     </div>
     <script>
     (function() {
+        // Tree view toggle functionality
+        document.querySelectorAll('.tree-toggle').forEach(function(btn) {
+            btn.addEventListener('click', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                var node = btn.closest('.tree-node');
+                var isCollapsed = node.classList.toggle('collapsed');
+                btn.setAttribute('aria-expanded', !isCollapsed);
+            });
+        });
+
+        // Expand All / Collapse All
+        var expandAllBtn = document.getElementById('expandAll');
+        var collapseAllBtn = document.getElementById('collapseAll');
+
+        if (expandAllBtn) {
+            expandAllBtn.addEventListener('click', function() {
+                document.querySelectorAll('.tree-node').forEach(function(n) {
+                    n.classList.remove('collapsed');
+                    var toggle = n.querySelector('.tree-toggle');
+                    if (toggle) toggle.setAttribute('aria-expanded', 'true');
+                });
+            });
+        }
+
+        if (collapseAllBtn) {
+            collapseAllBtn.addEventListener('click', function() {
+                document.querySelectorAll('.tree-node').forEach(function(n) {
+                    n.classList.add('collapsed');
+                    var toggle = n.querySelector('.tree-toggle');
+                    if (toggle) toggle.setAttribute('aria-expanded', 'false');
+                });
+            });
+        }
+
+        // Search functionality
         var searchInput = document.getElementById('searchInput');
         var searchResults = document.getElementById('searchResults');
         var debounceTimer;
@@ -1101,15 +1382,29 @@ const sessionTemplate = `<!DOCTYPE html>
                     <div class="search-results" id="searchResults"></div>
                 </div>
             </div>
+            <div class="tree-controls">
+                <button type="button" class="tree-control-btn" id="expandAll">Expand All</button>
+                <button type="button" class="tree-control-btn" id="collapseAll">Collapse All</button>
+            </div>
             <ul class="project-list">
                 {{range .AllProjects}}
-                <li class="project-item">
-                    <a href="../../{{ProjectSlug .Path}}/index.html" class="project-link{{if eq .Path $.Project.Path}} active{{end}}">
-                        <span class="project-name">{{.Path}}</span>
-                        <span class="project-meta">{{len .Sessions}} sessions</span>
-                    </a>
-                    {{if eq .Path $.Project.Path}}
-                    <ul class="session-list">
+                <li class="tree-node{{if ne .Path $.Project.Path}} collapsed{{end}}" data-project="{{ProjectSlug .Path}}">
+                    <div class="tree-node-header">
+                        <button type="button" class="tree-toggle{{if eq (len .Sessions) 0}} hidden{{end}}" aria-expanded="{{if eq .Path $.Project.Path}}true{{else}}false{{end}}" aria-label="Toggle {{.Path}}">
+                            <svg class="tree-chevron" viewBox="0 0 20 20" fill="currentColor">
+                                <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd"/>
+                            </svg>
+                        </button>
+                        <a href="../../{{ProjectSlug .Path}}/index.html" class="tree-node-link{{if eq .Path $.Project.Path}} active{{end}}">
+                            <span class="tree-node-content">
+                                <span class="tree-node-name">{{.Path}}</span>
+                                <span class="tree-node-meta">{{len .Sessions}} sessions</span>
+                            </span>
+                            {{if gt (len .Sessions) 0}}<span class="session-count">{{len .Sessions}}</span>{{end}}
+                        </a>
+                    </div>
+                    {{if gt (len .Sessions) 0}}
+                    <ul class="tree-children session-list">
                         {{range .Sessions}}
                         <li class="session-item">
                             <a href="{{.ID}}.html" class="session-link{{if eq .ID $.Session.ID}} active{{end}}">
@@ -1181,6 +1476,42 @@ const sessionTemplate = `<!DOCTYPE html>
     </div>
     <script>
     (function() {
+        // Tree view toggle functionality
+        document.querySelectorAll('.tree-toggle').forEach(function(btn) {
+            btn.addEventListener('click', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                var node = btn.closest('.tree-node');
+                var isCollapsed = node.classList.toggle('collapsed');
+                btn.setAttribute('aria-expanded', !isCollapsed);
+            });
+        });
+
+        // Expand All / Collapse All
+        var expandAllBtn = document.getElementById('expandAll');
+        var collapseAllBtn = document.getElementById('collapseAll');
+
+        if (expandAllBtn) {
+            expandAllBtn.addEventListener('click', function() {
+                document.querySelectorAll('.tree-node').forEach(function(n) {
+                    n.classList.remove('collapsed');
+                    var toggle = n.querySelector('.tree-toggle');
+                    if (toggle) toggle.setAttribute('aria-expanded', 'true');
+                });
+            });
+        }
+
+        if (collapseAllBtn) {
+            collapseAllBtn.addEventListener('click', function() {
+                document.querySelectorAll('.tree-node').forEach(function(n) {
+                    n.classList.add('collapsed');
+                    var toggle = n.querySelector('.tree-toggle');
+                    if (toggle) toggle.setAttribute('aria-expanded', 'false');
+                });
+            });
+        }
+
+        // Search functionality
         var searchInput = document.getElementById('searchInput');
         var searchResults = document.getElementById('searchResults');
         var debounceTimer;

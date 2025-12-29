@@ -54,9 +54,9 @@
 
 #### Unit: 001-tree-view (3 stories)
 
-- [ ] **001-tree-markup** (tree-view): Tree view HTML and CSS structure - Must - Bolt: 008-tree-view
-- [ ] **002-expand-collapse** (tree-view): JavaScript toggle functionality - Must - Bolt: 008-tree-view
-- [ ] **003-visual-polish** (tree-view): Animations and visual enhancements - Should - Bolt: 008-tree-view
+- [x] **001-tree-markup** (tree-view): Tree view HTML and CSS structure - Must - ✅ GENERATED - Bolt: 008-tree-view
+- [x] **002-expand-collapse** (tree-view): JavaScript toggle functionality - Must - ✅ GENERATED - Bolt: 008-tree-view
+- [x] **003-visual-polish** (tree-view): Animations and visual enhancements - Should - ✅ GENERATED - Bolt: 008-tree-view
 
 #### Unit: 002-resize-persist (3 stories)
 
@@ -102,10 +102,10 @@ None.
 
 ## Stories by Status
 
-- **Planned**: 6 (Intent 003)
+- **Planned**: 3 (Intent 003 - resize-persist)
 - **Generated**: 10 (Intents 001, 002)
 - **In Progress**: 0
-- **Completed**: 0
+- **Completed**: 3 (Intent 003 - tree-view)
 
 ---
 
@@ -137,7 +137,7 @@ Intent 003 (planned):
 | 005-watcher | 001 | 004-watcher | 001-watch-changes | completed |
 | 006-homebrew-tap | 001 | 006-homebrew-tap | 001-homebrew-distribution | completed |
 | 007-cli-refactor | 002 | 001-cli-refactor | 001-remove-commands, 002-update-serve, 003-update-docs | completed |
-| 008-tree-view | 003 | 001-tree-view | 001-tree-markup, 002-expand-collapse, 003-visual-polish | planned |
+| 008-tree-view | 003 | 001-tree-view | 001-tree-markup, 002-expand-collapse, 003-visual-polish | complete |
 | 009-resize-persist | 003 | 002-resize-persist | 001-resize-handle, 002-localstorage, 003-mobile-menu | planned |
 
 ---
