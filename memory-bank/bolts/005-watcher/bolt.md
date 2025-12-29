@@ -3,14 +3,20 @@ id: 005-watcher
 unit: 004-watcher
 intent: 001-chat-log-viewer
 type: simple-construction-bolt
-status: planned
+status: in-progress
 stories:
   - 001-watch-changes
 created: 2025-12-29T12:45:00Z
-started: null
+started: 2025-12-29T13:00:00Z
 completed: null
-current_stage: null
-stages_completed: []
+current_stage: test
+stages_completed:
+  - name: plan
+    completed: 2025-12-29T13:05:00Z
+    artifact: implementation-plan.md
+  - name: implement
+    completed: 2025-12-29T13:20:00Z
+    artifact: implementation-walkthrough.md
 
 # Bolt Dependencies
 requires_bolts:
