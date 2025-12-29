@@ -115,6 +115,19 @@ CLI tool that scans `~/.claude/projects`, parses JSONL chat logs, generates brow
 - **Priority**: Must
 - **Related Stories**: TBD
 
+### FR-9: Homebrew Distribution
+- **Description**: Distribute via Homebrew tap for easy installation
+- **Acceptance Criteria**:
+  - Create `fabriqaai/homebrew-tap` repository
+  - `brew tap fabriqa/tap` registers the tap
+  - `brew install fabriqa/tap/claude-code-logs` installs the CLI
+  - Support macOS arm64 (Apple Silicon)
+  - Support macOS amd64 (Intel)
+  - Support Linux amd64
+  - Formula auto-updates on new releases (via GitHub Actions + goreleaser)
+- **Priority**: Should
+- **Related Stories**: TBD
+
 ---
 
 ## Non-Functional Requirements
