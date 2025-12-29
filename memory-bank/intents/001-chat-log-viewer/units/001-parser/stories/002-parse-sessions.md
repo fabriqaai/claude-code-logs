@@ -2,11 +2,11 @@
 id: 002-parse-sessions
 unit: 001-parser
 intent: 001-chat-log-viewer
-status: draft
+status: complete
 priority: must
-created: 2025-12-29T12:00:00Z
+created: 2025-12-29T12:00:00.000Z
 assigned_bolt: 001-parser
-implemented: false
+implemented: true
 ---
 
 # Story: 002-parse-sessions

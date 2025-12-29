@@ -2,7 +2,7 @@
 unit: 001-parser
 intent: 001-chat-log-viewer
 phase: inception
-status: draft
+status: complete
 ---
 
 # Unit Brief: parser

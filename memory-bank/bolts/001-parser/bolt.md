@@ -3,17 +3,24 @@ id: 001-parser
 unit: 001-parser
 intent: 001-chat-log-viewer
 type: simple-construction-bolt
-status: planned
+status: complete
 stories:
   - 001-discover-projects
   - 002-parse-sessions
-created: 2025-12-29T12:45:00Z
-started: null
-completed: null
+created: 2025-12-29T12:45:00.000Z
+started: 2025-12-29T13:00:00.000Z
+completed: "2025-12-29T13:48:30Z"
 current_stage: null
-stages_completed: []
-
-# Bolt Dependencies
+stages_completed:
+  - name: plan
+    completed: 2025-12-29T13:05:00.000Z
+    artifact: implementation-plan.md
+  - name: implement
+    completed: 2025-12-29T13:20:00.000Z
+    artifact: implementation-walkthrough.md
+  - name: test
+    completed: 2025-12-29T13:30:00.000Z
+    artifact: test-walkthrough.md
 requires_bolts: []
 enables_bolts:
   - 002-generator
@@ -22,8 +29,6 @@ enables_bolts:
   - 005-watcher
 requires_units: []
 blocks: false
-
-# Complexity Assessment
 complexity:
   avg_complexity: 2
   avg_uncertainty: 1
@@ -53,9 +58,9 @@ Implement project discovery and JSONL session parsing functionality to extract s
 
 ## Stages
 
-- [ ] **1. Plan**: Pending → `implementation-plan.md`
-- [ ] **2. Implement**: Pending → Source code + `implementation-walkthrough.md`
-- [ ] **3. Test**: Pending → Tests + `test-walkthrough.md`
+- ✅ **1. Plan**: Complete → `implementation-plan.md`
+- ✅ **2. Implement**: Complete → Source code + `implementation-walkthrough.md`
+- ✅ **3. Test**: Complete → Tests + `test-walkthrough.md`
 
 ## Dependencies
 
