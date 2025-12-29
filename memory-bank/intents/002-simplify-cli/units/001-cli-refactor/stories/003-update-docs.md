@@ -2,11 +2,11 @@
 id: 003-update-docs
 unit: 001-cli-refactor
 intent: 002-simplify-cli
-status: ready
+status: done
 priority: must
 created: 2025-12-29T14:15:00Z
 assigned_bolt: 007-cli-refactor
-implemented: false
+implemented: true
 ---
 
 # Story: 003-update-docs

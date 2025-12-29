@@ -32,10 +32,7 @@ Download the latest release from [GitHub Releases](https://github.com/fabriqaai/
 ## Quick Start
 
 ```bash
-# Generate HTML from your chat logs
-claude-logs generate
-
-# Start the web server
+# Start the server (generates HTML automatically)
 claude-logs serve
 
 # Open http://localhost:8080 in your browser
@@ -43,34 +40,16 @@ claude-logs serve
 
 ## Usage
 
-### Generate HTML
+### Serve
 
-Convert Claude Code chat logs to static HTML pages:
-
-```bash
-claude-logs generate
-claude-logs generate --output-dir /custom/path
-claude-logs generate --verbose
-```
-
-### Start Server
-
-Launch a local web server to browse your logs:
+Generate HTML and start a local web server:
 
 ```bash
-claude-logs serve                    # Default port 8080
+claude-logs serve                    # Default port 8080, outputs to ~/claude-code-logs
 claude-logs serve --port 3000        # Custom port
+claude-logs serve --dir /custom/path # Custom output directory
 claude-logs serve --watch            # Auto-regenerate on changes
-```
-
-### Watch Mode
-
-Monitor for changes and regenerate automatically:
-
-```bash
-claude-logs watch                    # Watch with defaults
-claude-logs watch --debounce 5       # 5 second debounce delay
-claude-logs watch --interval 60      # Check for new dirs every 60s
+claude-logs serve --verbose          # Verbose output
 ```
 
 ### Version Info
@@ -78,6 +57,13 @@ claude-logs watch --interval 60      # Check for new dirs every 60s
 ```bash
 claude-logs version
 ```
+
+## Commands
+
+| Command | Description |
+|---------|-------------|
+| `serve` | Generate HTML and start web server |
+| `version` | Display version information |
 
 ## How It Works
 
@@ -89,7 +75,7 @@ claude-logs version
 ## Output Structure
 
 ```
-~/.claude-logs/
+~/claude-code-logs/
 ├── index.html              # Project listing
 ├── projects/
 │   └── my-project/
@@ -103,12 +89,10 @@ claude-logs version
 
 | Flag | Short | Description | Default |
 |------|-------|-------------|---------|
-| `--output-dir` | `-o` | Output directory for HTML | `~/.claude-logs` |
+| `--dir` | `-d` | Output directory for HTML | `~/claude-code-logs` |
+| `--port` | `-p` | Server port | `8080` |
+| `--watch` | `-w` | Auto-regenerate on changes | `false` |
 | `--verbose` | `-v` | Verbose output | `false` |
-| `--port` | `-p` | Server port (serve only) | `8080` |
-| `--watch` | `-w` | Enable watch mode (serve only) | `false` |
-| `--debounce` | `-d` | Debounce delay in seconds (watch only) | `2` |
-| `--interval` | `-i` | Poll interval in seconds (watch only) | `30` |
 
 ## Requirements
 
@@ -129,7 +113,6 @@ go test -v ./...
 go build -o claude-logs .
 
 # Run locally
-./claude-logs generate
 ./claude-logs serve
 ```
 

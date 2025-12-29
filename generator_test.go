@@ -241,7 +241,6 @@ func TestGenerateAll(t *testing.T) {
 		"Claude Code Logs",
 		"/Users/test/project1",
 		"fabriqa.ai",
-		"Static Mode",
 	}
 
 	for _, check := range checks {
@@ -446,11 +445,11 @@ func TestCSSEmbedded(t *testing.T) {
 	}
 
 	cssElements := []string{
-		"--bg-cream",
-		"--accent-orange",
+		"--bg-primary",
+		"--accent-primary",
 		"--sidebar-width",
-		"--font-serif",
-		"288px",
+		"--font-display",
+		"280px",
 	}
 
 	for _, tc := range checks {
@@ -478,16 +477,13 @@ func TestFooterBranding(t *testing.T) {
 	}
 }
 
-func TestStaticModeBanner(t *testing.T) {
-	// Verify static mode banner in all templates
+func TestNoStaticModeBanner(t *testing.T) {
+	// Verify static mode banner has been removed (serve is now the only command)
 	templates := []string{indexTemplate, projectIndexTemplate, sessionTemplate}
 
 	for i, tmpl := range templates {
-		if !strings.Contains(tmpl, "Static Mode") {
-			t.Errorf("Template %d should contain Static Mode banner", i)
-		}
-		if !strings.Contains(tmpl, "claude-code-logs serve") {
-			t.Errorf("Template %d should mention serve command", i)
+		if strings.Contains(tmpl, "Static Mode") {
+			t.Errorf("Template %d should NOT contain Static Mode banner (removed in CLI refactor)", i)
 		}
 	}
 }

@@ -17,8 +17,8 @@ var (
 
 // Global flags
 var (
-	outputDir string
-	verbose   bool
+	dirFlag string
+	verbose bool
 )
 
 // rootCmd is the base command for the CLI
@@ -30,30 +30,51 @@ var rootCmd = &cobra.Command{
 It scans ~/.claude/projects for chat sessions and creates a searchable web interface.`,
 }
 
+// Legacy commands that show migration messages
+var generateCmd = &cobra.Command{
+	Use:    "generate",
+	Short:  "Generate HTML pages (DEPRECATED)",
+	Hidden: true,
+	Run: func(cmd *cobra.Command, args []string) {
+		fmt.Println("Command removed. Use 'claude-logs serve' instead (generates automatically on startup)")
+	},
+}
+
+var watchCmd = &cobra.Command{
+	Use:    "watch",
+	Short:  "Watch for changes (DEPRECATED)",
+	Hidden: true,
+	Run: func(cmd *cobra.Command, args []string) {
+		fmt.Println("Command removed. Use 'claude-logs serve --watch' instead")
+	},
+}
+
 func init() {
 	// Global flags available to all commands
-	rootCmd.PersistentFlags().StringVarP(&outputDir, "output-dir", "o", "", "Output directory for HTML (default: ~/.claude-logs)")
+	rootCmd.PersistentFlags().StringVarP(&dirFlag, "dir", "d", "", "Output directory for HTML (default: ~/claude-code-logs)")
 	rootCmd.PersistentFlags().BoolVarP(&verbose, "verbose", "v", false, "Verbose output")
 
 	// Add subcommands
-	rootCmd.AddCommand(generateCmd)
 	rootCmd.AddCommand(serveCmd)
-	rootCmd.AddCommand(watchCmd)
 	rootCmd.AddCommand(versionCmd)
+
+	// Add hidden legacy commands for migration messages
+	rootCmd.AddCommand(generateCmd)
+	rootCmd.AddCommand(watchCmd)
 }
 
 // getOutputDir returns the output directory, expanding ~ to home directory
 func getOutputDir() (string, error) {
-	if outputDir != "" {
-		return expandPath(outputDir)
+	if dirFlag != "" {
+		return expandPath(dirFlag)
 	}
 
-	// Default to ~/.claude-logs
+	// Default to ~/claude-code-logs
 	home, err := os.UserHomeDir()
 	if err != nil {
 		return "", fmt.Errorf("getting home directory: %w", err)
 	}
-	return filepath.Join(home, ".claude-logs"), nil
+	return filepath.Join(home, "claude-code-logs"), nil
 }
 
 // expandPath expands ~ to the user's home directory

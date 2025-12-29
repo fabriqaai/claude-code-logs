@@ -70,8 +70,8 @@ func TestExpandPath(t *testing.T) {
 
 func TestGetOutputDir(t *testing.T) {
 	// Save and restore global state
-	origOutputDir := outputDir
-	defer func() { outputDir = origOutputDir }()
+	origDirFlag := dirFlag
+	defer func() { dirFlag = origDirFlag }()
 
 	home, err := os.UserHomeDir()
 	if err != nil {
@@ -79,31 +79,31 @@ func TestGetOutputDir(t *testing.T) {
 	}
 
 	tests := []struct {
-		name      string
-		outputDir string
-		want      string
-		wantErr   bool
+		name    string
+		dirFlag string
+		want    string
+		wantErr bool
 	}{
 		{
-			name:      "default output dir",
-			outputDir: "",
-			want:      filepath.Join(home, ".claude-logs"),
+			name:    "default output dir",
+			dirFlag: "",
+			want:    filepath.Join(home, "claude-code-logs"),
 		},
 		{
-			name:      "custom output dir",
-			outputDir: "/tmp/custom-logs",
-			want:      "/tmp/custom-logs",
+			name:    "custom output dir",
+			dirFlag: "/tmp/custom-logs",
+			want:    "/tmp/custom-logs",
 		},
 		{
-			name:      "tilde in output dir",
-			outputDir: "~/my-logs",
-			want:      filepath.Join(home, "my-logs"),
+			name:    "tilde in output dir",
+			dirFlag: "~/my-logs",
+			want:    filepath.Join(home, "my-logs"),
 		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			outputDir = tt.outputDir
+			dirFlag = tt.dirFlag
 			got, err := getOutputDir()
 			if (err != nil) != tt.wantErr {
 				t.Errorf("getOutputDir() error = %v, wantErr %v", err, tt.wantErr)
@@ -191,21 +191,20 @@ func TestVersionCommand(t *testing.T) {
 	}
 }
 
-func TestWatchCommand(t *testing.T) {
-	// Watch command uses fmt.Println which goes to stdout, not the cobra output
-	// We just verify the command structure
+func TestLegacyCommands(t *testing.T) {
+	// Test that legacy commands exist and are hidden
+	if generateCmd.Use != "generate" {
+		t.Errorf("generate command Use = %q, want %q", generateCmd.Use, "generate")
+	}
+	if !generateCmd.Hidden {
+		t.Error("generate command should be hidden")
+	}
 
 	if watchCmd.Use != "watch" {
 		t.Errorf("watch command Use = %q, want %q", watchCmd.Use, "watch")
 	}
-	if watchCmd.Short == "" {
-		t.Error("watch command should have Short description")
-	}
-
-	// Verify the interval flag exists
-	flag := watchCmd.Flags().Lookup("interval")
-	if flag == nil {
-		t.Error("watch command should have --interval flag")
+	if !watchCmd.Hidden {
+		t.Error("watch command should be hidden")
 	}
 }
 
@@ -221,11 +220,18 @@ func TestRootCommand(t *testing.T) {
 	}
 
 	output := buf.String()
-	if !strings.Contains(output, "generate") {
-		t.Errorf("root help should mention generate command: %s", output)
-	}
+	// Only serve and version should be visible in Available Commands (generate and watch are hidden)
 	if !strings.Contains(output, "serve") {
 		t.Errorf("root help should mention serve command: %s", output)
+	}
+	if !strings.Contains(output, "version") {
+		t.Errorf("root help should mention version command: %s", output)
+	}
+	// Hidden commands should NOT appear in Available Commands section
+	// Note: "generate" may appear in description text, but not as a command listing
+	availableCommandsSection := output[strings.Index(output, "Available Commands"):]
+	if strings.Contains(availableCommandsSection, "generate ") && strings.Contains(availableCommandsSection, "DEPRECATED") {
+		t.Errorf("root help Available Commands should NOT list hidden generate command: %s", output)
 	}
 }
 

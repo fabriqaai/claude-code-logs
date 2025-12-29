@@ -15,8 +15,8 @@ var (
 
 var serveCmd = &cobra.Command{
 	Use:   "serve",
-	Short: "Start the web server",
-	Long: `Start a local web server to browse chat logs.
+	Short: "Generate HTML and start the web server",
+	Long: `Generate HTML from chat logs and start a local web server.
 
 The server provides:
 - Static HTML pages for browsing projects and sessions
@@ -31,6 +31,7 @@ With --watch flag, the server will also:
 Example:
   claude-logs serve
   claude-logs serve --port 3000
+  claude-logs serve --dir /custom/path
   claude-logs serve --watch  (regenerates on changes)`,
 	RunE: runServe,
 }
@@ -56,12 +57,9 @@ func runServe(cmd *cobra.Command, args []string) error {
 	logVerbose("Port: %d", servePort)
 	logVerbose("Watch mode: %v", serveWatch)
 
-	// Check if output directory exists
-	if _, err := os.Stat(outDir); os.IsNotExist(err) {
-		fmt.Println("Output directory does not exist. Running generate first...")
-		if err := runGenerate(cmd, args); err != nil {
-			return err
-		}
+	// Check if output directory is writable (creates if needed)
+	if err := ensureWritableDir(outDir); err != nil {
+		return fmt.Errorf("output directory not writable: %w", err)
 	}
 
 	// Get Claude projects path
@@ -70,15 +68,30 @@ func runServe(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
-	// Load projects for search index
-	fmt.Println("Loading projects for search index...")
+	// Always generate HTML on startup
+	fmt.Println("Generating HTML...")
+	start := time.Now()
 	projects, err := LoadAllProjects(projectsPath)
 	if err != nil {
 		return fmt.Errorf("loading projects: %w", err)
 	}
 
 	if len(projects) == 0 {
-		fmt.Println("Warning: No projects found. Server will start but search will be empty.")
+		fmt.Println("No Claude projects found.")
+		fmt.Println("Claude projects are typically stored in ~/.claude/projects")
+		fmt.Println("Server will start but will have no content to display.")
+	} else {
+		// Count total sessions
+		totalSessions := 0
+		for _, p := range projects {
+			totalSessions += len(p.Sessions)
+		}
+		fmt.Printf("Found %d projects with %d sessions\n", len(projects), totalSessions)
+
+		if err := GenerateAll(projects, outDir); err != nil {
+			return fmt.Errorf("generating HTML: %w", err)
+		}
+		fmt.Printf("Generated HTML in %v\n", time.Since(start).Round(time.Millisecond))
 	}
 
 	// Handle watch mode
@@ -103,4 +116,23 @@ func runServe(cmd *cobra.Command, args []string) error {
 	// Start server
 	fmt.Printf("Starting server on http://127.0.0.1:%d\n", servePort)
 	return StartServer(servePort, outDir, projects)
+}
+
+// ensureWritableDir ensures the directory exists and is writable
+func ensureWritableDir(path string) error {
+	// Create directory if it doesn't exist
+	if err := os.MkdirAll(path, 0755); err != nil {
+		return fmt.Errorf("creating directory: %w", err)
+	}
+
+	// Check if writable by creating a temp file
+	testFile := path + "/.write-test"
+	f, err := os.Create(testFile)
+	if err != nil {
+		return fmt.Errorf("directory not writable: %w", err)
+	}
+	f.Close()
+	os.Remove(testFile)
+
+	return nil
 }

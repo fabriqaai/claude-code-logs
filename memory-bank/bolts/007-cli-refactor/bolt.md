@@ -3,16 +3,25 @@ id: 007-cli-refactor
 unit: 001-cli-refactor
 intent: 002-simplify-cli
 type: simple-construction-bolt
-status: planned
+status: completed
 stories:
   - 001-remove-commands
   - 002-update-serve
   - 003-update-docs
 created: 2025-12-29T14:20:00Z
-started: null
-completed: null
-current_stage: null
-stages_completed: []
+started: 2025-12-29T15:00:00Z
+completed: 2025-12-29T15:25:00Z
+current_stage: test
+stages_completed:
+  - name: plan
+    completed: 2025-12-29T15:00:00Z
+    artifact: implementation-plan.md
+  - name: implement
+    completed: 2025-12-29T15:15:00Z
+    artifact: implementation-walkthrough.md
+  - name: test
+    completed: 2025-12-29T15:25:00Z
+    artifact: test-walkthrough.md
 
 # Bolt Dependencies
 requires_bolts: []
@@ -56,10 +65,10 @@ Simplify the CLI interface by:
 
 ## Stages
 
-- [ ] **1. plan**: Review existing code and plan changes
-- [ ] **2. implement**: Make code changes
-- [ ] **3. test**: Verify all acceptance criteria
-- [ ] **4. document**: Update README and help text
+- [x] **1. plan**: Review existing code and plan changes
+- [x] **2. implement**: Make code changes
+- [x] **3. test**: Verify all acceptance criteria
+- [x] **4. document**: Update README and help text (done as part of implement)
 
 ## Files to Modify
 
@@ -81,13 +90,13 @@ Simplify the CLI interface by:
 
 ## Success Criteria
 
-- [ ] `claude-logs serve` generates HTML then starts server
-- [ ] `claude-logs serve --watch` enables file watching
-- [ ] `claude-logs serve --dir /path` uses custom directory
-- [ ] Default output is `~/claude-code-logs/`
-- [ ] Old commands show helpful migration messages
-- [ ] All existing tests pass
-- [ ] README accurately reflects new CLI structure
+- [x] `claude-logs serve` generates HTML then starts server
+- [x] `claude-logs serve --watch` enables file watching
+- [x] `claude-logs serve --dir /path` uses custom directory
+- [x] Default output is `~/claude-code-logs/`
+- [x] Old commands show helpful migration messages
+- [x] All existing tests pass
+- [x] README accurately reflects new CLI structure
 
 ## Notes
 

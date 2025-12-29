@@ -5,34 +5,69 @@ package main
 
 // baseCSS contains the Claude.ai-inspired styling
 const baseCSS = `
-/* Claude.ai-inspired styling */
+/* Claude.ai Aesthetic - Warm, Refined, Distinctive */
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,400&family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;1,9..144,400&family=JetBrains+Mono:wght@400;500&display=swap');
+
 :root {
-    --bg-cream: hsl(48, 33.3%, 97.1%);
-    --bg-white: #ffffff;
-    --accent-orange: hsl(15, 54.2%, 51.2%);
-    --text-primary: #1a1a1a;
-    --text-secondary: #666666;
-    --text-muted: #999999;
-    --border-subtle: rgba(0, 0, 0, 0.1);
-    --sidebar-width: 288px;
-    --font-serif: Georgia, "Times New Roman", Times, serif;
-    --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-    --font-mono: "SF Mono", Monaco, "Cascadia Code", "Roboto Mono", Consolas, "Courier New", monospace;
+    /* Warm, inviting color palette */
+    --bg-primary: #FAF9F6;
+    --bg-secondary: #FFFFFF;
+    --bg-tertiary: #F5F4F0;
+    --bg-code: #1E1E1E;
+
+    /* Terracotta accent - Claude's signature warmth */
+    --accent-primary: #C2410C;
+    --accent-hover: #9A3412;
+    --accent-subtle: #FED7AA;
+
+    /* Refined text hierarchy */
+    --text-primary: #1C1917;
+    --text-secondary: #57534E;
+    --text-muted: #A8A29E;
+    --text-inverse: #FAFAF9;
+
+    /* Subtle, warm borders */
+    --border-subtle: rgba(28, 25, 23, 0.08);
+    --border-medium: rgba(28, 25, 23, 0.12);
+
+    /* Shadows for depth */
+    --shadow-sm: 0 1px 2px rgba(28, 25, 23, 0.04);
+    --shadow-md: 0 4px 12px rgba(28, 25, 23, 0.08);
+    --shadow-lg: 0 8px 24px rgba(28, 25, 23, 0.12);
+
+    /* Layout */
+    --sidebar-width: 280px;
+    --content-max-width: 768px;
+
+    /* Typography - Distinctive choices */
+    --font-display: 'Fraunces', Georgia, serif;
+    --font-body: 'DM Sans', -apple-system, sans-serif;
+    --font-mono: 'JetBrains Mono', 'SF Mono', monospace;
+
+    /* Timing */
+    --transition-fast: 150ms cubic-bezier(0.4, 0, 0.2, 1);
+    --transition-smooth: 300ms cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-* {
+*, *::before, *::after {
     margin: 0;
     padding: 0;
     box-sizing: border-box;
 }
 
-html, body {
-    height: 100%;
-    font-family: var(--font-sans);
+html {
     font-size: 16px;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+    font-family: var(--font-body);
+    font-size: 1rem;
     line-height: 1.6;
     color: var(--text-primary);
-    background-color: var(--bg-cream);
+    background-color: var(--bg-primary);
+    min-height: 100vh;
 }
 
 /* Layout */
@@ -41,67 +76,114 @@ html, body {
     min-height: 100vh;
 }
 
-/* Sidebar */
+/* Sidebar - Refined navigation */
 .sidebar {
     width: var(--sidebar-width);
     min-width: var(--sidebar-width);
-    background-color: var(--bg-white);
-    border-right: 0.5px solid var(--border-subtle);
+    background-color: var(--bg-secondary);
+    border-right: 1px solid var(--border-subtle);
     padding: 24px 16px;
     overflow-y: auto;
     position: fixed;
     height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+.sidebar::-webkit-scrollbar {
+    width: 6px;
+}
+
+.sidebar::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.sidebar::-webkit-scrollbar-thumb {
+    background: var(--border-medium);
+    border-radius: 3px;
 }
 
 .sidebar-header {
-    margin-bottom: 24px;
-    padding-bottom: 16px;
-    border-bottom: 0.5px solid var(--border-subtle);
+    margin-bottom: 32px;
+    padding-bottom: 20px;
+    border-bottom: 1px solid var(--border-subtle);
 }
 
 .sidebar-title {
-    font-size: 18px;
-    font-weight: 600;
+    font-family: var(--font-display);
+    font-size: 1.25rem;
+    font-weight: 500;
     color: var(--text-primary);
     text-decoration: none;
-    display: block;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    transition: color var(--transition-fast);
+}
+
+.sidebar-title::before {
+    content: '';
+    width: 24px;
+    height: 24px;
+    background: linear-gradient(135deg, var(--accent-primary) 0%, #EA580C 100%);
+    border-radius: 6px;
+    flex-shrink: 0;
 }
 
 .sidebar-title:hover {
-    color: var(--accent-orange);
+    color: var(--accent-primary);
 }
 
 .sidebar-subtitle {
-    font-size: 12px;
+    font-size: 0.75rem;
     color: var(--text-muted);
-    margin-top: 4px;
+    margin-top: 6px;
+    margin-left: 34px;
+    letter-spacing: 0.02em;
 }
 
 .project-list {
     list-style: none;
+    flex: 1;
 }
 
 .project-item {
-    margin-bottom: 8px;
+    margin-bottom: 4px;
 }
 
 .project-link {
     display: block;
-    padding: 8px 12px;
-    border-radius: 6px;
+    padding: 10px 12px;
+    border-radius: 8px;
     text-decoration: none;
-    color: var(--text-primary);
-    font-size: 14px;
-    transition: background-color 0.15s ease;
+    color: var(--text-secondary);
+    font-size: 0.875rem;
+    font-weight: 400;
+    transition: all var(--transition-fast);
+    position: relative;
 }
 
 .project-link:hover {
-    background-color: var(--bg-cream);
+    background-color: var(--bg-tertiary);
+    color: var(--text-primary);
 }
 
 .project-link.active {
-    background-color: var(--bg-cream);
+    background-color: var(--accent-subtle);
+    color: var(--accent-primary);
     font-weight: 500;
+}
+
+.project-link.active::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 3px;
+    height: 20px;
+    background: var(--accent-primary);
+    border-radius: 0 2px 2px 0;
 }
 
 .project-name {
@@ -112,39 +194,41 @@ html, body {
 }
 
 .project-meta {
-    font-size: 12px;
+    font-size: 0.7rem;
     color: var(--text-muted);
     margin-top: 2px;
+    font-weight: 400;
 }
 
 .session-list {
     list-style: none;
     margin-top: 8px;
+    margin-left: 12px;
     padding-left: 12px;
-    border-left: 2px solid var(--border-subtle);
+    border-left: 1px solid var(--border-subtle);
 }
 
 .session-item {
-    margin-bottom: 4px;
+    margin-bottom: 2px;
 }
 
 .session-link {
     display: block;
-    padding: 6px 10px;
-    border-radius: 4px;
+    padding: 8px 10px;
+    border-radius: 6px;
     text-decoration: none;
-    color: var(--text-secondary);
-    font-size: 13px;
-    transition: background-color 0.15s ease;
+    color: var(--text-muted);
+    font-size: 0.8rem;
+    transition: all var(--transition-fast);
 }
 
 .session-link:hover {
-    background-color: var(--bg-cream);
-    color: var(--text-primary);
+    background-color: var(--bg-tertiary);
+    color: var(--text-secondary);
 }
 
 .session-link.active {
-    background-color: var(--bg-cream);
+    background-color: var(--bg-tertiary);
     color: var(--text-primary);
     font-weight: 500;
 }
@@ -157,237 +241,385 @@ html, body {
 }
 
 .session-date {
-    font-size: 11px;
+    font-size: 0.7rem;
     color: var(--text-muted);
+    margin-top: 1px;
 }
 
-/* Main content */
+/* Main content area */
 .main {
     flex: 1;
     margin-left: var(--sidebar-width);
-    padding: 32px 48px;
-    max-width: 900px;
+    padding: 48px;
+    max-width: calc(var(--content-max-width) + 96px);
+    animation: fadeIn 0.4s ease-out;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(8px); }
+    to { opacity: 1; transform: translateY(0); }
 }
 
 .page-header {
-    margin-bottom: 32px;
+    margin-bottom: 48px;
 }
 
 .page-title {
-    font-size: 28px;
-    font-weight: 600;
+    font-family: var(--font-display);
+    font-size: 2rem;
+    font-weight: 500;
     color: var(--text-primary);
     margin-bottom: 8px;
+    letter-spacing: -0.02em;
+    line-height: 1.2;
 }
 
 .page-subtitle {
-    font-size: 14px;
-    color: var(--text-secondary);
+    font-size: 0.9rem;
+    color: var(--text-muted);
+    font-weight: 400;
 }
 
-/* Static mode banner */
-.static-banner {
-    background-color: #fff3cd;
-    border: 1px solid #ffc107;
-    border-radius: 8px;
-    padding: 12px 16px;
-    margin-bottom: 24px;
-    font-size: 14px;
-    color: #856404;
-}
-
-.static-banner strong {
-    font-weight: 600;
-}
-
-/* Messages */
+/* Messages - Conversation flow */
 .message-list {
     display: flex;
     flex-direction: column;
-    gap: 24px;
+    gap: 32px;
 }
 
 .message {
-    padding: 20px 24px;
-    border-radius: 12px;
-    background-color: var(--bg-white);
-    border: 0.5px solid var(--border-subtle);
+    display: flex;
+    gap: 16px;
+    animation: messageIn 0.3s ease-out backwards;
+}
+
+@keyframes messageIn {
+    from { opacity: 0; transform: translateY(12px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.message:nth-child(1) { animation-delay: 0.05s; }
+.message:nth-child(2) { animation-delay: 0.1s; }
+.message:nth-child(3) { animation-delay: 0.15s; }
+.message:nth-child(4) { animation-delay: 0.2s; }
+.message:nth-child(5) { animation-delay: 0.25s; }
+
+/* Avatar styling */
+.message::before {
+    content: '';
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    flex-shrink: 0;
+    margin-top: 4px;
+}
+
+.message.user::before {
+    background: linear-gradient(135deg, #78716C 0%, #57534E 100%);
+}
+
+.message.assistant::before {
+    background: linear-gradient(135deg, var(--accent-primary) 0%, #EA580C 100%);
+}
+
+.message-body {
+    flex: 1;
+    min-width: 0;
 }
 
 .message-header {
     display: flex;
     align-items: center;
     gap: 12px;
-    margin-bottom: 12px;
+    margin-bottom: 8px;
 }
 
 .message-role {
-    font-size: 13px;
+    font-size: 0.8rem;
     font-weight: 600;
     text-transform: uppercase;
-    letter-spacing: 0.5px;
+    letter-spacing: 0.05em;
 }
 
 .message-role.user {
-    color: var(--accent-orange);
+    color: var(--text-secondary);
 }
 
 .message-role.assistant {
-    color: #6b7280;
+    color: var(--accent-primary);
 }
 
 .message-time {
-    font-size: 12px;
+    font-size: 0.75rem;
     color: var(--text-muted);
 }
 
 .message-content {
-    font-size: 15px;
-    line-height: 1.7;
-}
-
-.message.user .message-content {
-    font-family: var(--font-sans);
+    font-size: 0.95rem;
+    line-height: 1.75;
+    color: var(--text-primary);
 }
 
 .message.assistant .message-content {
-    font-family: var(--font-serif);
+    font-family: var(--font-display);
+    font-weight: 400;
 }
 
 .message-content p {
-    margin-bottom: 12px;
+    margin-bottom: 16px;
 }
 
 .message-content p:last-child {
     margin-bottom: 0;
 }
 
-/* Code blocks */
+.message-content a {
+    color: var(--accent-primary);
+    text-decoration: none;
+    border-bottom: 1px solid var(--accent-subtle);
+    transition: border-color var(--transition-fast);
+}
+
+.message-content a:hover {
+    border-color: var(--accent-primary);
+}
+
+/* Code blocks - Dark, refined */
 .message-content pre {
-    background-color: #f6f8fa;
-    border: 1px solid var(--border-subtle);
-    border-radius: 6px;
-    padding: 16px;
+    background-color: var(--bg-code);
+    border-radius: 12px;
+    padding: 20px 24px;
     overflow-x: auto;
-    margin: 12px 0;
+    margin: 20px 0;
     font-family: var(--font-mono);
-    font-size: 13px;
-    line-height: 1.5;
+    font-size: 0.85rem;
+    line-height: 1.6;
+    color: #E5E5E5;
+    box-shadow: var(--shadow-md);
 }
 
 .message-content code {
     font-family: var(--font-mono);
-    font-size: 13px;
-    background-color: #f6f8fa;
-    padding: 2px 6px;
-    border-radius: 4px;
+    font-size: 0.85em;
+    background-color: var(--bg-tertiary);
+    color: var(--accent-primary);
+    padding: 3px 8px;
+    border-radius: 6px;
+    font-weight: 500;
 }
 
 .message-content pre code {
     background: none;
+    color: inherit;
     padding: 0;
     border-radius: 0;
+    font-weight: 400;
 }
 
-/* Tool blocks */
+/* Tool blocks - Clean, professional */
 .tool-block {
-    margin: 12px 0;
-    border: 1px solid var(--border-subtle);
-    border-radius: 8px;
+    margin: 20px 0;
+    border: 1px solid var(--border-medium);
+    border-radius: 12px;
     overflow: hidden;
+    background: var(--bg-secondary);
+    box-shadow: var(--shadow-sm);
+    transition: box-shadow var(--transition-fast);
+}
+
+.tool-block:hover {
+    box-shadow: var(--shadow-md);
 }
 
 .tool-header {
-    background-color: #f6f8fa;
-    padding: 10px 14px;
-    font-size: 13px;
+    background-color: var(--bg-tertiary);
+    padding: 12px 16px;
+    font-size: 0.85rem;
     font-weight: 500;
     cursor: pointer;
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: 10px;
+    transition: background-color var(--transition-fast);
+    user-select: none;
 }
 
 .tool-header:hover {
-    background-color: #eef1f4;
+    background-color: var(--border-subtle);
 }
 
 .tool-icon {
-    font-size: 14px;
+    width: 18px;
+    height: 18px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--accent-primary);
+    color: white;
+    border-radius: 4px;
+    font-size: 10px;
+    font-weight: 600;
+}
+
+.tool-icon.result {
+    background: #059669;
 }
 
 .tool-name {
     font-family: var(--font-mono);
     color: var(--text-secondary);
+    font-weight: 500;
+}
+
+.tool-toggle {
+    margin-left: auto;
+    color: var(--text-muted);
+    transition: transform var(--transition-fast);
 }
 
 .tool-content {
-    padding: 12px 14px;
-    background-color: var(--bg-white);
+    padding: 16px;
+    background-color: var(--bg-code);
     font-family: var(--font-mono);
-    font-size: 12px;
-    line-height: 1.5;
-    max-height: 300px;
+    font-size: 0.8rem;
+    line-height: 1.6;
+    max-height: 320px;
     overflow: auto;
     white-space: pre-wrap;
     word-break: break-word;
+    color: #E5E5E5;
 }
 
 .tool-content.collapsed {
     display: none;
 }
 
-/* Empty state */
+/* Cards for project/session listings */
+.card {
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-subtle);
+    border-radius: 16px;
+    padding: 24px;
+    transition: all var(--transition-smooth);
+    box-shadow: var(--shadow-sm);
+}
+
+.card:hover {
+    border-color: var(--border-medium);
+    box-shadow: var(--shadow-md);
+    transform: translateY(-2px);
+}
+
+.card-title {
+    font-family: var(--font-display);
+    font-size: 1.1rem;
+    font-weight: 500;
+    color: var(--text-primary);
+    margin-bottom: 8px;
+}
+
+.card-meta {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    margin-bottom: 12px;
+}
+
+.card-content {
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+    line-height: 1.6;
+}
+
+.card-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    margin-top: 16px;
+    font-size: 0.85rem;
+    font-weight: 500;
+    color: var(--accent-primary);
+    text-decoration: none;
+    transition: gap var(--transition-fast);
+}
+
+.card-link:hover {
+    gap: 10px;
+}
+
+.card-link::after {
+    content: '→';
+}
+
+/* Empty state - Elegant placeholder */
 .empty-state {
     text-align: center;
-    padding: 48px 24px;
+    padding: 80px 32px;
     color: var(--text-secondary);
 }
 
 .empty-state-icon {
-    font-size: 48px;
-    margin-bottom: 16px;
-    opacity: 0.5;
+    width: 64px;
+    height: 64px;
+    margin: 0 auto 24px;
+    background: var(--bg-tertiary);
+    border-radius: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 28px;
 }
 
 .empty-state-title {
-    font-size: 18px;
+    font-family: var(--font-display);
+    font-size: 1.25rem;
     font-weight: 500;
     margin-bottom: 8px;
     color: var(--text-primary);
 }
 
 .empty-state-text {
-    font-size: 14px;
+    font-size: 0.9rem;
+    color: var(--text-muted);
+    max-width: 320px;
+    margin: 0 auto;
 }
 
-/* Footer */
+/* Footer - Subtle branding */
 .footer {
-    margin-top: 48px;
-    padding-top: 24px;
-    border-top: 0.5px solid var(--border-subtle);
+    margin-top: 64px;
+    padding-top: 32px;
+    border-top: 1px solid var(--border-subtle);
     text-align: center;
-    font-size: 13px;
+    font-size: 0.8rem;
     color: var(--text-muted);
 }
 
 .footer a {
-    color: var(--accent-orange);
+    color: var(--text-secondary);
     text-decoration: none;
+    font-weight: 500;
+    transition: color var(--transition-fast);
 }
 
 .footer a:hover {
-    text-decoration: underline;
+    color: var(--accent-primary);
 }
 
-/* Responsive */
+/* Responsive design */
+@media (max-width: 1024px) {
+    .main {
+        padding: 32px;
+    }
+}
+
 @media (max-width: 768px) {
     .sidebar {
         position: relative;
         width: 100%;
         height: auto;
         border-right: none;
-        border-bottom: 0.5px solid var(--border-subtle);
+        border-bottom: 1px solid var(--border-subtle);
+        padding: 20px 16px;
     }
 
     .main {
@@ -398,6 +630,150 @@ html, body {
     .container {
         flex-direction: column;
     }
+
+    .page-title {
+        font-size: 1.5rem;
+    }
+
+    .message {
+        gap: 12px;
+    }
+
+    .message::before {
+        width: 28px;
+        height: 28px;
+    }
+}
+
+/* Selection styling */
+::selection {
+    background: var(--accent-subtle);
+    color: var(--accent-primary);
+}
+
+/* Focus styles for accessibility */
+:focus-visible {
+    outline: 2px solid var(--accent-primary);
+    outline-offset: 2px;
+}
+
+/* Search UI */
+.search-container {
+    margin-bottom: 24px;
+}
+
+.search-input-wrapper {
+    position: relative;
+}
+
+.search-input {
+    width: 100%;
+    padding: 10px 12px 10px 36px;
+    font-family: var(--font-body);
+    font-size: 0.875rem;
+    border: 1px solid var(--border-medium);
+    border-radius: 8px;
+    background: var(--bg-primary);
+    color: var(--text-primary);
+    transition: all var(--transition-fast);
+}
+
+.search-input:focus {
+    outline: none;
+    border-color: var(--accent-primary);
+    box-shadow: 0 0 0 3px var(--accent-subtle);
+}
+
+.search-input::placeholder {
+    color: var(--text-muted);
+}
+
+.search-icon {
+    position: absolute;
+    left: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 16px;
+    height: 16px;
+    color: var(--text-muted);
+    pointer-events: none;
+}
+
+.search-results {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    margin-top: 8px;
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-medium);
+    border-radius: 12px;
+    box-shadow: var(--shadow-lg);
+    max-height: 400px;
+    overflow-y: auto;
+    z-index: 100;
+    display: none;
+}
+
+.search-results.active {
+    display: block;
+}
+
+.search-result-item {
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--border-subtle);
+    cursor: pointer;
+    transition: background-color var(--transition-fast);
+}
+
+.search-result-item:last-child {
+    border-bottom: none;
+}
+
+.search-result-item:hover {
+    background-color: var(--bg-tertiary);
+}
+
+.search-result-project {
+    font-size: 0.7rem;
+    color: var(--text-muted);
+    margin-bottom: 4px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.search-result-title {
+    font-size: 0.85rem;
+    font-weight: 500;
+    color: var(--text-primary);
+    margin-bottom: 4px;
+}
+
+.search-result-content {
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+    line-height: 1.5;
+}
+
+.search-result-content mark {
+    background: var(--accent-subtle);
+    color: var(--accent-primary);
+    padding: 1px 3px;
+    border-radius: 3px;
+}
+
+.search-no-results {
+    padding: 24px 16px;
+    text-align: center;
+    color: var(--text-muted);
+    font-size: 0.85rem;
+}
+
+.search-loading {
+    padding: 24px 16px;
+    text-align: center;
+    color: var(--text-muted);
+    font-size: 0.85rem;
 }
 `
 
@@ -417,6 +793,15 @@ const indexTemplate = `<!DOCTYPE html>
                 <a href="index.html" class="sidebar-title">Claude Code Logs</a>
                 <div class="sidebar-subtitle">{{len .Projects}} projects</div>
             </div>
+            <div class="search-container">
+                <div class="search-input-wrapper">
+                    <svg class="search-icon" viewBox="0 0 20 20" fill="currentColor">
+                        <path fill-rule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clip-rule="evenodd"/>
+                    </svg>
+                    <input type="text" class="search-input" id="searchInput" placeholder="Search messages..." autocomplete="off">
+                    <div class="search-results" id="searchResults"></div>
+                </div>
+            </div>
             <ul class="project-list">
                 {{range .Projects}}
                 <li class="project-item">
@@ -429,9 +814,6 @@ const indexTemplate = `<!DOCTYPE html>
             </ul>
         </aside>
         <main class="main">
-            <div class="static-banner">
-                <strong>Static Mode:</strong> Start the server for search functionality. Run <code>claude-code-logs serve</code>
-            </div>
             <header class="page-header">
                 <h1 class="page-title">Claude Code Logs</h1>
                 <p class="page-subtitle">Browse your Claude Code chat sessions</p>
@@ -467,6 +849,69 @@ const indexTemplate = `<!DOCTYPE html>
             </footer>
         </main>
     </div>
+    <script>
+    (function() {
+        var searchInput = document.getElementById('searchInput');
+        var searchResults = document.getElementById('searchResults');
+        var debounceTimer;
+        var baseUrl = '';
+
+        searchInput.addEventListener('input', function() {
+            clearTimeout(debounceTimer);
+            var query = this.value.trim();
+
+            if (query.length < 2) {
+                searchResults.classList.remove('active');
+                return;
+            }
+
+            debounceTimer = setTimeout(function() {
+                searchResults.innerHTML = '<div class="search-loading">Searching...</div>';
+                searchResults.classList.add('active');
+
+                fetch('/api/search', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ query: query, limit: 20 })
+                })
+                .then(function(r) { return r.json(); })
+                .then(function(data) {
+                    if (!data.results || data.results.length === 0) {
+                        searchResults.innerHTML = '<div class="search-no-results">No results found</div>';
+                        return;
+                    }
+                    var html = '';
+                    data.results.forEach(function(r) {
+                        r.matches.slice(0, 3).forEach(function(m) {
+                            html += '<a href="' + baseUrl + r.projectSlug + '/' + r.sessionId + '.html" class="search-result-item">';
+                            html += '<div class="search-result-project">' + r.project + '</div>';
+                            html += '<div class="search-result-title">' + r.sessionTitle + '</div>';
+                            html += '<div class="search-result-content">' + m.content.substring(0, 150) + '...</div>';
+                            html += '</a>';
+                        });
+                    });
+                    searchResults.innerHTML = html;
+                })
+                .catch(function() {
+                    searchResults.innerHTML = '<div class="search-no-results">Search error</div>';
+                });
+            }, 300);
+        });
+
+        document.addEventListener('click', function(e) {
+            if (!searchInput.contains(e.target) && !searchResults.contains(e.target)) {
+                searchResults.classList.remove('active');
+            }
+        });
+
+        searchInput.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                searchResults.classList.remove('active');
+                searchInput.blur();
+            }
+        });
+    })();
+    </script>
 </body>
 </html>`
 
@@ -485,6 +930,15 @@ const projectIndexTemplate = `<!DOCTYPE html>
             <div class="sidebar-header">
                 <a href="../index.html" class="sidebar-title">Claude Code Logs</a>
                 <div class="sidebar-subtitle">{{len .AllProjects}} projects</div>
+            </div>
+            <div class="search-container">
+                <div class="search-input-wrapper">
+                    <svg class="search-icon" viewBox="0 0 20 20" fill="currentColor">
+                        <path fill-rule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clip-rule="evenodd"/>
+                    </svg>
+                    <input type="text" class="search-input" id="searchInput" placeholder="Search messages..." autocomplete="off">
+                    <div class="search-results" id="searchResults"></div>
+                </div>
             </div>
             <ul class="project-list">
                 {{range .AllProjects}}
@@ -510,9 +964,6 @@ const projectIndexTemplate = `<!DOCTYPE html>
             </ul>
         </aside>
         <main class="main">
-            <div class="static-banner">
-                <strong>Static Mode:</strong> Start the server for search functionality. Run <code>claude-code-logs serve</code>
-            </div>
             <header class="page-header">
                 <h1 class="page-title">{{.Project.Path}}</h1>
                 <p class="page-subtitle">{{len .Project.Sessions}} sessions</p>
@@ -544,6 +995,69 @@ const projectIndexTemplate = `<!DOCTYPE html>
             </footer>
         </main>
     </div>
+    <script>
+    (function() {
+        var searchInput = document.getElementById('searchInput');
+        var searchResults = document.getElementById('searchResults');
+        var debounceTimer;
+        var baseUrl = '../';
+
+        searchInput.addEventListener('input', function() {
+            clearTimeout(debounceTimer);
+            var query = this.value.trim();
+
+            if (query.length < 2) {
+                searchResults.classList.remove('active');
+                return;
+            }
+
+            debounceTimer = setTimeout(function() {
+                searchResults.innerHTML = '<div class="search-loading">Searching...</div>';
+                searchResults.classList.add('active');
+
+                fetch('/api/search', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ query: query, limit: 20 })
+                })
+                .then(function(r) { return r.json(); })
+                .then(function(data) {
+                    if (!data.results || data.results.length === 0) {
+                        searchResults.innerHTML = '<div class="search-no-results">No results found</div>';
+                        return;
+                    }
+                    var html = '';
+                    data.results.forEach(function(r) {
+                        r.matches.slice(0, 3).forEach(function(m) {
+                            html += '<a href="' + baseUrl + r.projectSlug + '/' + r.sessionId + '.html" class="search-result-item">';
+                            html += '<div class="search-result-project">' + r.project + '</div>';
+                            html += '<div class="search-result-title">' + r.sessionTitle + '</div>';
+                            html += '<div class="search-result-content">' + m.content.substring(0, 150) + '...</div>';
+                            html += '</a>';
+                        });
+                    });
+                    searchResults.innerHTML = html;
+                })
+                .catch(function() {
+                    searchResults.innerHTML = '<div class="search-no-results">Search error</div>';
+                });
+            }, 300);
+        });
+
+        document.addEventListener('click', function(e) {
+            if (!searchInput.contains(e.target) && !searchResults.contains(e.target)) {
+                searchResults.classList.remove('active');
+            }
+        });
+
+        searchInput.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                searchResults.classList.remove('active');
+                searchInput.blur();
+            }
+        });
+    })();
+    </script>
 </body>
 </html>`
 
@@ -571,6 +1085,15 @@ const sessionTemplate = `<!DOCTYPE html>
                 <a href="../../index.html" class="sidebar-title">Claude Code Logs</a>
                 <div class="sidebar-subtitle">{{len .AllProjects}} projects</div>
             </div>
+            <div class="search-container">
+                <div class="search-input-wrapper">
+                    <svg class="search-icon" viewBox="0 0 20 20" fill="currentColor">
+                        <path fill-rule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clip-rule="evenodd"/>
+                    </svg>
+                    <input type="text" class="search-input" id="searchInput" placeholder="Search messages..." autocomplete="off">
+                    <div class="search-results" id="searchResults"></div>
+                </div>
+            </div>
             <ul class="project-list">
                 {{range .AllProjects}}
                 <li class="project-item">
@@ -595,9 +1118,6 @@ const sessionTemplate = `<!DOCTYPE html>
             </ul>
         </aside>
         <main class="main">
-            <div class="static-banner">
-                <strong>Static Mode:</strong> Start the server for search functionality. Run <code>claude-code-logs serve</code>
-            </div>
             <header class="page-header">
                 <h1 class="page-title">{{.Session.Summary}}</h1>
                 <p class="page-subtitle">{{.Session.CreatedAt.Format "January 2, 2006 at 3:04 PM"}} · {{len .Session.Messages}} messages</p>
@@ -606,32 +1126,36 @@ const sessionTemplate = `<!DOCTYPE html>
             <div class="message-list">
                 {{range $idx, $msg := .Session.Messages}}
                 <div class="message {{$msg.Role}}">
-                    <div class="message-header">
-                        <span class="message-role {{$msg.Role}}">{{$msg.Role}}</span>
-                        <span class="message-time">{{$msg.Timestamp.Format "3:04 PM"}}</span>
-                    </div>
-                    <div class="message-content">
-                        {{range $bidx, $block := $msg.Content}}
-                        {{if eq $block.Type "text"}}
-                        {{RenderText $block.Text}}
-                        {{else if eq $block.Type "tool_use"}}
-                        <div class="tool-block">
-                            <div class="tool-header" onclick="toggleTool('tool-{{$idx}}-{{$bidx}}')">
-                                <span class="tool-icon">🔧</span>
-                                <span class="tool-name">{{$block.ToolName}}</span>
-                            </div>
-                            <div id="tool-{{$idx}}-{{$bidx}}" class="tool-content collapsed">{{$block.ToolInput}}</div>
+                    <div class="message-body">
+                        <div class="message-header">
+                            <span class="message-role {{$msg.Role}}">{{$msg.Role}}</span>
+                            <span class="message-time">{{$msg.Timestamp.Format "3:04 PM"}}</span>
                         </div>
-                        {{else if eq $block.Type "tool_result"}}
-                        <div class="tool-block">
-                            <div class="tool-header" onclick="toggleTool('result-{{$idx}}-{{$bidx}}')">
-                                <span class="tool-icon">📋</span>
-                                <span class="tool-name">Result</span>
+                        <div class="message-content">
+                            {{range $bidx, $block := $msg.Content}}
+                            {{if eq $block.Type "text"}}
+                            {{RenderText $block.Text}}
+                            {{else if eq $block.Type "tool_use"}}
+                            <div class="tool-block">
+                                <div class="tool-header" onclick="toggleTool('tool-{{$idx}}-{{$bidx}}')">
+                                    <span class="tool-icon">T</span>
+                                    <span class="tool-name">{{$block.ToolName}}</span>
+                                    <span class="tool-toggle">▼</span>
+                                </div>
+                                <div id="tool-{{$idx}}-{{$bidx}}" class="tool-content collapsed">{{$block.ToolInput}}</div>
                             </div>
-                            <div id="result-{{$idx}}-{{$bidx}}" class="tool-content collapsed">{{$block.ToolOutput}}</div>
+                            {{else if eq $block.Type "tool_result"}}
+                            <div class="tool-block">
+                                <div class="tool-header" onclick="toggleTool('result-{{$idx}}-{{$bidx}}')">
+                                    <span class="tool-icon result">R</span>
+                                    <span class="tool-name">Result</span>
+                                    <span class="tool-toggle">▼</span>
+                                </div>
+                                <div id="result-{{$idx}}-{{$bidx}}" class="tool-content collapsed">{{$block.ToolOutput}}</div>
+                            </div>
+                            {{end}}
+                            {{end}}
                         </div>
-                        {{end}}
-                        {{end}}
                     </div>
                 </div>
                 {{end}}
@@ -648,5 +1172,68 @@ const sessionTemplate = `<!DOCTYPE html>
             </footer>
         </main>
     </div>
+    <script>
+    (function() {
+        var searchInput = document.getElementById('searchInput');
+        var searchResults = document.getElementById('searchResults');
+        var debounceTimer;
+        var baseUrl = '../../';
+
+        searchInput.addEventListener('input', function() {
+            clearTimeout(debounceTimer);
+            var query = this.value.trim();
+
+            if (query.length < 2) {
+                searchResults.classList.remove('active');
+                return;
+            }
+
+            debounceTimer = setTimeout(function() {
+                searchResults.innerHTML = '<div class="search-loading">Searching...</div>';
+                searchResults.classList.add('active');
+
+                fetch('/api/search', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ query: query, limit: 20 })
+                })
+                .then(function(r) { return r.json(); })
+                .then(function(data) {
+                    if (!data.results || data.results.length === 0) {
+                        searchResults.innerHTML = '<div class="search-no-results">No results found</div>';
+                        return;
+                    }
+                    var html = '';
+                    data.results.forEach(function(r) {
+                        r.matches.slice(0, 3).forEach(function(m) {
+                            html += '<a href="' + baseUrl + r.projectSlug + '/' + r.sessionId + '.html" class="search-result-item">';
+                            html += '<div class="search-result-project">' + r.project + '</div>';
+                            html += '<div class="search-result-title">' + r.sessionTitle + '</div>';
+                            html += '<div class="search-result-content">' + m.content.substring(0, 150) + '...</div>';
+                            html += '</a>';
+                        });
+                    });
+                    searchResults.innerHTML = html;
+                })
+                .catch(function() {
+                    searchResults.innerHTML = '<div class="search-no-results">Search error</div>';
+                });
+            }, 300);
+        });
+
+        document.addEventListener('click', function(e) {
+            if (!searchInput.contains(e.target) && !searchResults.contains(e.target)) {
+                searchResults.classList.remove('active');
+            }
+        });
+
+        searchInput.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                searchResults.classList.remove('active');
+                searchInput.blur();
+            }
+        });
+    })();
+    </script>
 </body>
 </html>`

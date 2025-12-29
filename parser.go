@@ -147,9 +147,9 @@ func ParseSession(filePath string, sessionID string) (*Session, error) {
 	}
 
 	scanner := bufio.NewScanner(file)
-	// Increase buffer size for long lines
+	// Increase buffer size for very long lines (some Claude sessions have 20MB+ lines)
 	buf := make([]byte, 0, 64*1024)
-	scanner.Buffer(buf, 10*1024*1024) // 10MB max line size
+	scanner.Buffer(buf, 50*1024*1024) // 50MB max line size
 
 	lineNum := 0
 	for scanner.Scan() {
