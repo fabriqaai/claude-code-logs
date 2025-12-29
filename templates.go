@@ -121,13 +121,11 @@ body {
     transition: color var(--transition-fast);
 }
 
-.sidebar-title::before {
-    content: '';
-    width: 24px;
-    height: 24px;
-    background: linear-gradient(135deg, var(--accent-primary) 0%, #EA580C 100%);
-    border-radius: 6px;
+.sidebar-logo {
+    width: 28px;
+    height: 28px;
     flex-shrink: 0;
+    object-fit: contain;
 }
 
 .sidebar-title:hover {
@@ -790,7 +788,10 @@ const indexTemplate = `<!DOCTYPE html>
     <div class="container">
         <aside class="sidebar">
             <div class="sidebar-header">
-                <a href="index.html" class="sidebar-title">Claude Code Logs</a>
+                <a href="index.html" class="sidebar-title">
+                    <img src="claude-code-icon.png" alt="Claude Code" class="sidebar-logo">
+                    Claude Code Logs
+                </a>
                 <div class="sidebar-subtitle">{{len .Projects}} projects</div>
             </div>
             <div class="search-container">
@@ -928,7 +929,10 @@ const projectIndexTemplate = `<!DOCTYPE html>
     <div class="container">
         <aside class="sidebar">
             <div class="sidebar-header">
-                <a href="../index.html" class="sidebar-title">Claude Code Logs</a>
+                <a href="../index.html" class="sidebar-title">
+                    <img src="../claude-code-icon.png" alt="Claude Code" class="sidebar-logo">
+                    Claude Code Logs
+                </a>
                 <div class="sidebar-subtitle">{{len .AllProjects}} projects</div>
             </div>
             <div class="search-container">
@@ -1082,7 +1086,10 @@ const sessionTemplate = `<!DOCTYPE html>
     <div class="container">
         <aside class="sidebar">
             <div class="sidebar-header">
-                <a href="../../index.html" class="sidebar-title">Claude Code Logs</a>
+                <a href="../../index.html" class="sidebar-title">
+                    <img src="../../claude-code-icon.png" alt="Claude Code" class="sidebar-logo">
+                    Claude Code Logs
+                </a>
                 <div class="sidebar-subtitle">{{len .AllProjects}} projects</div>
             </div>
             <div class="search-container">

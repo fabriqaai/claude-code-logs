@@ -2,10 +2,10 @@
 
 ## Overview
 
-- **Total stories**: 10
+- **Total stories**: 16
 - **Generated**: 10
-- **Assigned to bolts**: 10
-- **Last updated**: 2025-12-29T14:25:00Z
+- **Assigned to bolts**: 16
+- **Last updated**: 2025-12-29T16:30:00Z
 
 ---
 
@@ -50,9 +50,25 @@
 
 ---
 
+### 003-tree-view-sidebar
+
+#### Unit: 001-tree-view (3 stories)
+
+- [ ] **001-tree-markup** (tree-view): Tree view HTML and CSS structure - Must - Bolt: 008-tree-view
+- [ ] **002-expand-collapse** (tree-view): JavaScript toggle functionality - Must - Bolt: 008-tree-view
+- [ ] **003-visual-polish** (tree-view): Animations and visual enhancements - Should - Bolt: 008-tree-view
+
+#### Unit: 002-resize-persist (3 stories)
+
+- [ ] **001-resize-handle** (resize-persist): Draggable resize functionality - Must - Bolt: 009-resize-persist
+- [ ] **002-localstorage** (resize-persist): Persist width and collapse state - Should - Bolt: 009-resize-persist
+- [ ] **003-mobile-menu** (resize-persist): Hamburger menu and drawer overlay - Should - Bolt: 009-resize-persist
+
+---
+
 ## Stories by Priority
 
-### Must Have (8 stories)
+### Must Have (11 stories)
 
 | Story | Unit | Bolt | Description |
 |-------|------|------|-------------|
@@ -64,13 +80,19 @@
 | 001-remove-commands | 001-cli-refactor | 007-cli-refactor | Remove generate/watch commands |
 | 002-update-serve | 001-cli-refactor | 007-cli-refactor | Update serve command |
 | 003-update-docs | 001-cli-refactor | 007-cli-refactor | Update documentation |
+| 001-tree-markup | 001-tree-view | 008-tree-view | Tree view HTML/CSS |
+| 002-expand-collapse | 001-tree-view | 008-tree-view | Expand/collapse toggle |
+| 001-resize-handle | 002-resize-persist | 009-resize-persist | Resizable sidebar |
 
-### Should Have (2 stories)
+### Should Have (5 stories)
 
 | Story | Unit | Bolt | Description |
 |-------|------|------|-------------|
 | 001-watch-changes | 004-watcher | 005-watcher | Watch for changes |
 | 001-homebrew-distribution | 006-homebrew-tap | 006-homebrew-tap | Homebrew distribution |
+| 003-visual-polish | 001-tree-view | 008-tree-view | Visual polish |
+| 002-localstorage | 002-resize-persist | 009-resize-persist | State persistence |
+| 003-mobile-menu | 002-resize-persist | 009-resize-persist | Mobile hamburger menu |
 
 ### Could Have (0 stories)
 
@@ -80,8 +102,8 @@ None.
 
 ## Stories by Status
 
-- **Planned**: 0
-- **Generated**: 10
+- **Planned**: 6 (Intent 003)
+- **Generated**: 10 (Intents 001, 002)
 - **In Progress**: 0
 - **Completed**: 0
 
@@ -97,8 +119,11 @@ Intent 001 (completed):
                                                     │
                                                     └──► 006-homebrew-tap
 
-Intent 002:
+Intent 002 (completed):
 007-cli-refactor (standalone, builds on Intent 001)
+
+Intent 003 (planned):
+008-tree-view ──► 009-resize-persist
 ```
 
 ### Bolts Created
@@ -111,7 +136,9 @@ Intent 002:
 | 004-cli | 001 | 005-cli | 001-cli-commands | completed |
 | 005-watcher | 001 | 004-watcher | 001-watch-changes | completed |
 | 006-homebrew-tap | 001 | 006-homebrew-tap | 001-homebrew-distribution | completed |
-| 007-cli-refactor | 002 | 001-cli-refactor | 001-remove-commands, 002-update-serve, 003-update-docs | planned |
+| 007-cli-refactor | 002 | 001-cli-refactor | 001-remove-commands, 002-update-serve, 003-update-docs | completed |
+| 008-tree-view | 003 | 001-tree-view | 001-tree-markup, 002-expand-collapse, 003-visual-polish | planned |
+| 009-resize-persist | 003 | 002-resize-persist | 001-resize-handle, 002-localstorage, 003-mobile-menu | planned |
 
 ---
 
@@ -125,13 +152,19 @@ Intent 002:
 - **005-watcher** requires 001-parser, 002-generator, 004-cli (triggered by CLI)
 - **006-homebrew-tap** requires 004-cli (distributes the binary)
 
-### Intent 002 Dependencies
+### Intent 002 Dependencies (completed)
 
 - **007-cli-refactor** requires Intent 001 complete (modifies existing CLI code)
+
+### Intent 003 Dependencies
+
+- **008-tree-view** requires none (modifies templates.go)
+- **009-resize-persist** requires 008-tree-view (needs tree structure for collapse state)
 
 ### Cross-Intent Dependencies
 
 - Intent 002 builds on Intent 001's completed CLI
+- Intent 003 builds on Intent 001's templates (no direct dependency on Intent 002)
 
 ### Dependency Warnings
 
@@ -152,12 +185,16 @@ None - dependency chain is clear and acyclic.
 ### Intent 002
 ✅ `memory-bank/bolts/007-cli-refactor/bolt.md`
 
+### Intent 003
+✅ `memory-bank/bolts/008-tree-view/bolt.md`
+✅ `memory-bank/bolts/009-resize-persist/bolt.md`
+
 ---
 
 ## Summary
 
-- **7 bolts** created (6 from Intent 001, 1 from Intent 002)
-- **10 stories** covered
+- **9 bolts** created (6 from Intent 001, 1 from Intent 002, 2 from Intent 003)
+- **16 stories** covered
 - All stories assigned to bolts
 - Clear dependency chain established
-- Intent 001 complete, Intent 002 ready for construction
+- Intent 001 complete, Intent 002 complete, Intent 003 ready for construction

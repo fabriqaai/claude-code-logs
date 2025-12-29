@@ -1,6 +1,7 @@
 package main
 
 import (
+	_ "embed"
 	"fmt"
 	"html/template"
 	"os"
@@ -8,6 +9,9 @@ import (
 	"regexp"
 	"strings"
 )
+
+//go:embed claude-code-icon.png
+var logoData []byte
 
 // Generator handles HTML generation from parsed session data
 type Generator struct {
@@ -58,6 +62,11 @@ func (g *Generator) GenerateAll() error {
 		return fmt.Errorf("creating output directory: %w", err)
 	}
 
+	// Copy logo file
+	if err := g.CopyLogo(); err != nil {
+		return fmt.Errorf("copying logo: %w", err)
+	}
+
 	// Generate main index
 	if err := g.GenerateIndex(); err != nil {
 		return fmt.Errorf("generating index: %w", err)
@@ -72,6 +81,12 @@ func (g *Generator) GenerateAll() error {
 	}
 
 	return nil
+}
+
+// CopyLogo copies the embedded logo file to the output directory
+func (g *Generator) CopyLogo() error {
+	logoPath := filepath.Join(g.outputDir, "claude-code-icon.png")
+	return os.WriteFile(logoPath, logoData, 0644)
 }
 
 // GenerateIndex generates the main index.html
