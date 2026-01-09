@@ -1,7 +1,3 @@
----
-description: Master orchestrator for AI-DLC - routes to appropriate phase/agent based on project state
----
-
 # Activate Master Agent
 
 **Command**: `/specsmd-master-agent`

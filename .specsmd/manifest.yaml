@@ -1,6 +1,5 @@
 flow: aidlc
-version: 0.1.4
-installed_at: '2026-01-06T11:40:26.136Z'
+version: 0.0.0-dev.2
+installed_at: '2025-12-29T09:33:47.686Z'
 tools:
   - claude
-  - antigravity

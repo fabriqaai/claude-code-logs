@@ -1,7 +1,3 @@
----
-description: Planning phase agent - requirements gathering, story creation, and bolt planning
----
-
 # Activate Inception Agent
 
 **Command**: `/specsmd-inception-agent`

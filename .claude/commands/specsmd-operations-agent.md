@@ -1,7 +1,3 @@
----
-description: Deployment phase agent - build, deploy, verify, and monitor releases
----
-
 # Activate Operations Agent
 
 **Command**: `/specsmd-operations-agent`

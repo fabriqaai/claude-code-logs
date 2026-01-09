@@ -1,7 +1,3 @@
----
-description: Building phase agent - execute bolts through DDD stages (model, test, implement)
----
-
 # Activate Construction Agent
 
 **Command**: `/specsmd-construction-agent`
