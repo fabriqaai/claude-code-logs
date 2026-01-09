@@ -60,9 +60,9 @@
 
 #### Unit: 002-resize-persist (3 stories)
 
-- [ ] **001-resize-handle** (resize-persist): Draggable resize functionality - Must - Bolt: 009-resize-persist
-- [ ] **002-localstorage** (resize-persist): Persist width and collapse state - Should - Bolt: 009-resize-persist
-- [ ] **003-mobile-menu** (resize-persist): Hamburger menu and drawer overlay - Should - Bolt: 009-resize-persist
+- [x] **001-resize-handle** (resize-persist): Draggable resize functionality - Must - ✅ GENERATED - Bolt: 009-resize-persist
+- [x] **002-localstorage** (resize-persist): Persist width and collapse state - Should - ✅ GENERATED - Bolt: 009-resize-persist
+- [x] **003-mobile-menu** (resize-persist): Hamburger menu and drawer overlay - Should - ✅ GENERATED - Bolt: 009-resize-persist
 
 ---
 
@@ -102,10 +102,10 @@ None.
 
 ## Stories by Status
 
-- **Planned**: 3 (Intent 003 - resize-persist)
-- **Generated**: 10 (Intents 001, 002)
+- **Planned**: 0
+- **Generated**: 16 (All intents)
 - **In Progress**: 0
-- **Completed**: 3 (Intent 003 - tree-view)
+- **Completed**: 16 (All intents)
 
 ---
 
@@ -138,7 +138,7 @@ Intent 003 (planned):
 | 006-homebrew-tap | 001 | 006-homebrew-tap | 001-homebrew-distribution | completed |
 | 007-cli-refactor | 002 | 001-cli-refactor | 001-remove-commands, 002-update-serve, 003-update-docs | completed |
 | 008-tree-view | 003 | 001-tree-view | 001-tree-markup, 002-expand-collapse, 003-visual-polish | complete |
-| 009-resize-persist | 003 | 002-resize-persist | 001-resize-handle, 002-localstorage, 003-mobile-menu | planned |
+| 009-resize-persist | 003 | 002-resize-persist | 001-resize-handle, 002-localstorage, 003-mobile-menu | completed |
 
 ---
 
@@ -197,4 +197,4 @@ None - dependency chain is clear and acyclic.
 - **16 stories** covered
 - All stories assigned to bolts
 - Clear dependency chain established
-- Intent 001 complete, Intent 002 complete, Intent 003 ready for construction
+- Intent 001 complete, Intent 002 complete, Intent 003 complete

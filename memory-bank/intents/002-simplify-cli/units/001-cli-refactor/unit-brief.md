@@ -1,10 +1,10 @@
 ---
 unit: 001-cli-refactor
 intent: 002-simplify-cli
-phase: inception
-status: ready
+phase: complete
+status: complete
 created: 2025-12-29T14:10:00Z
-updated: 2025-12-29T14:10:00Z
+updated: 2026-01-09T12:05:00Z
 ---
 
 # Unit Brief: CLI Refactor

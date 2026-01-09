@@ -1,8 +1,8 @@
 ---
 unit: 006-homebrew-tap
 intent: 001-chat-log-viewer
-phase: inception
-status: draft
+phase: complete
+status: complete
 ---
 
 # Unit Brief: homebrew-tap

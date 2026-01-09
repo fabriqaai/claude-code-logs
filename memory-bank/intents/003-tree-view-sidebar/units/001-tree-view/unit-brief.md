@@ -1,7 +1,7 @@
 ---
 unit: 001-tree-view
 intent: 003-tree-view-sidebar
-status: ready
+status: complete
 created: 2025-12-29T16:00:00Z
 ---
 

@@ -3,7 +3,7 @@ id: 004-cli
 unit: 005-cli
 intent: 001-chat-log-viewer
 type: simple-construction-bolt
-status: complete
+status: completed
 stories:
   - 001-cli-commands
 created: 2025-12-29T12:45:00.000Z

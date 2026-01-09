@@ -3,7 +3,7 @@ id: 003-server
 unit: 003-server
 intent: 001-chat-log-viewer
 type: simple-construction-bolt
-status: complete
+status: completed
 stories:
   - 001-serve-and-search
 created: 2025-12-29T12:45:00.000Z

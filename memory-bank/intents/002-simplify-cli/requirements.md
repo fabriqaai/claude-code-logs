@@ -1,9 +1,9 @@
 ---
 intent: 002-simplify-cli
-phase: inception
-status: draft
+phase: complete
+status: complete
 created: 2025-12-29T14:00:00Z
-updated: 2025-12-29T14:00:00Z
+updated: 2026-01-09T12:00:00Z
 ---
 
 # Requirements: Simplify CLI

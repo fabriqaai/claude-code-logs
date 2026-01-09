@@ -1,8 +1,8 @@
 ---
 unit: 004-watcher
 intent: 001-chat-log-viewer
-phase: inception
-status: draft
+phase: complete
+status: complete
 ---
 
 # Unit Brief: watcher

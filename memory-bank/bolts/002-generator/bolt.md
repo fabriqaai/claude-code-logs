@@ -3,7 +3,7 @@ id: 002-generator
 unit: 002-generator
 intent: 001-chat-log-viewer
 type: simple-construction-bolt
-status: complete
+status: completed
 stories:
   - 001-generate-html
 created: 2025-12-29T12:45:00.000Z

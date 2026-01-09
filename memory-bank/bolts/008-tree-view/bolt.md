@@ -3,7 +3,7 @@ bolt-id: "008-tree-view"
 bolt_type: "simple-construction-bolt"
 intent: "003-tree-view-sidebar"
 unit: "001-tree-view"
-status: complete
+status: completed
 created: 2025-12-29T16:00:00Z
 started: 2025-12-29T17:00:00Z
 completed: 2025-12-29T17:30:00Z

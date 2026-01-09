@@ -3,7 +3,7 @@ id: 001-parser
 unit: 001-parser
 intent: 001-chat-log-viewer
 type: simple-construction-bolt
-status: complete
+status: completed
 stories:
   - 001-discover-projects
   - 002-parse-sessions

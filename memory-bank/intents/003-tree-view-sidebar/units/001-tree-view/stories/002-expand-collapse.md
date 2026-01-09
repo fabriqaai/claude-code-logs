@@ -2,7 +2,7 @@
 id: 002-expand-collapse
 unit: 001-tree-view
 intent: 003-tree-view-sidebar
-status: ready
+status: complete
 priority: must
 created: 2025-12-29T16:00:00Z
 assigned_bolt: 008-tree-view

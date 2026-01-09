@@ -2,7 +2,7 @@
 id: 002-localstorage
 unit: 002-resize-persist
 intent: 003-tree-view-sidebar
-status: ready
+status: complete
 priority: should
 created: 2025-12-29T16:00:00Z
 assigned_bolt: 009-resize-persist

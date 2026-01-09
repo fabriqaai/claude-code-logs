@@ -2,11 +2,11 @@
 id: 001-homebrew-distribution
 unit: 006-homebrew-tap
 intent: 001-chat-log-viewer
-status: draft
+status: complete
 priority: should
 created: 2025-12-29T12:00:00Z
 assigned_bolt: 006-homebrew-tap
-implemented: false
+implemented: true
 ---
 
 # Story: 001-homebrew-distribution
