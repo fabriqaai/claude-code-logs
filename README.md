@@ -2,6 +2,8 @@
 
 Browse and search your Claude Code chat logs with a local web interface.
 
+Blog article about this project https://www.cengizhan.com/p/announcing-claude-code-logs-a-searchable
+
 ## Features
 
 - **HTML Generation**: Converts JSONL chat logs to browsable HTML pages
