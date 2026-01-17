@@ -166,7 +166,7 @@ func (s *Server) handleStatic(fileServer http.Handler) http.HandlerFunc {
 		}
 
 		// Handle root - render main index
-		if path == "/" || path == "" {
+		if path == "/" || path == "" || path == "/index.html" {
 			s.renderMainIndex(w, r)
 			return
 		}
