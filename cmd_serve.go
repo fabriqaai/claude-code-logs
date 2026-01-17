@@ -13,24 +13,28 @@ var (
 	servePort  int
 	serveWatch bool
 	serveList  bool
+	serveForce bool
 )
 
 var serveCmd = &cobra.Command{
 	Use:   "serve",
-	Short: "Generate HTML and start the web server",
-	Long: `Generate HTML from chat logs and start a local web server.
+	Short: "Generate Markdown and start the web server",
+	Long: `Generate Markdown from chat logs and start a local web server.
 
 The server provides:
-- Static HTML pages for browsing projects and sessions
+- Markdown files with YAML frontmatter for each session
+- Client-side rendering using marked.js and highlight.js
 - Search API for full-text search across all messages
 - Real-time stats endpoint
 
 With --watch flag, the server will also:
 - Monitor ~/.claude/projects for changes
-- Automatically regenerate HTML when sessions are modified
+- Automatically regenerate Markdown when sessions are modified
 - Debounce rapid changes for efficiency
 
 With --list flag, you can interactively select which projects to serve.
+
+With --force flag, regenerate all files regardless of modification time.
 
 Example:
   claude-code-logs serve
@@ -38,7 +42,8 @@ Example:
   claude-code-logs serve --dir /custom/path
   claude-code-logs serve --watch         (regenerates on changes)
   claude-code-logs serve --list          (select projects interactively)
-  claude-code-logs serve --list --watch  (select projects + watch mode)`,
+  claude-code-logs serve --list --watch  (select projects + watch mode)
+  claude-code-logs serve --force         (regenerate all files)`,
 	RunE: runServe,
 }
 
@@ -47,6 +52,7 @@ func init() {
 	serveCmd.Flags().IntVarP(&servePort, "port", "p", 8080, "Server port")
 	serveCmd.Flags().BoolVarP(&serveWatch, "watch", "w", false, "Enable watch mode (regenerate on changes)")
 	serveCmd.Flags().BoolVarP(&serveList, "list", "l", false, "Interactively select projects to serve")
+	serveCmd.Flags().BoolVarP(&serveForce, "force", "f", false, "Force regeneration of all files (ignore mtime)")
 }
 
 // RegisterServeFlags adds serve flags to a command (used for root command default)
@@ -54,6 +60,7 @@ func RegisterServeFlags(cmd *cobra.Command) {
 	cmd.Flags().IntVarP(&servePort, "port", "p", 8080, "Server port")
 	cmd.Flags().BoolVarP(&serveWatch, "watch", "w", false, "Enable watch mode (regenerate on changes)")
 	cmd.Flags().BoolVarP(&serveList, "list", "l", false, "Interactively select projects to serve")
+	cmd.Flags().BoolVarP(&serveForce, "force", "f", false, "Force regeneration of all files (ignore mtime)")
 }
 
 func runServe(cmd *cobra.Command, args []string) error {
@@ -71,6 +78,7 @@ func runServe(cmd *cobra.Command, args []string) error {
 	logVerbose("Output directory: %s", outDir)
 	logVerbose("Port: %d", servePort)
 	logVerbose("Watch mode: %v", serveWatch)
+	logVerbose("Force regeneration: %v", serveForce)
 
 	// Check if output directory is writable (creates if needed)
 	if err := ensureWritableDir(outDir); err != nil {
@@ -110,9 +118,9 @@ func runServe(cmd *cobra.Command, args []string) error {
 		fmt.Printf("Selected %d projects\n", len(projects))
 	}
 
-	// Generate HTML
+	// Generate Markdown
 	if len(projects) > 0 {
-		fmt.Println("Generating HTML...")
+		fmt.Println("Generating Markdown...")
 		// Count total sessions
 		totalSessions := 0
 		for _, p := range projects {
@@ -120,10 +128,20 @@ func runServe(cmd *cobra.Command, args []string) error {
 		}
 		fmt.Printf("Found %d projects with %d sessions\n", len(projects), totalSessions)
 
-		if err := GenerateAll(projects, outDir); err != nil {
-			return fmt.Errorf("generating HTML: %w", err)
+		result, err := GenerateAllMarkdown(projects, outDir, projectsPath, serveForce)
+		if err != nil {
+			return fmt.Errorf("generating Markdown: %w", err)
 		}
-		fmt.Printf("Generated HTML in %v\n", time.Since(start).Round(time.Millisecond))
+
+		// Report results
+		fmt.Printf("Generated: %d, Skipped: %d\n", result.Generated, result.Skipped)
+		if len(result.Errors) > 0 {
+			fmt.Printf("Warnings: %d errors during generation\n", len(result.Errors))
+			for _, e := range result.Errors {
+				logVerbose("  - %v", e)
+			}
+		}
+		fmt.Printf("Completed in %v\n", time.Since(start).Round(time.Millisecond))
 	}
 
 	// Handle watch mode

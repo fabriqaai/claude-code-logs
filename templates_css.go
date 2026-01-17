@@ -1240,3 +1240,287 @@ body {
     font-size: 0.85rem;
 }
 `
+
+// shellCSS contains additional styles for the session shell with client-side MD rendering
+const shellCSS = `
+/* Action Buttons */
+.action-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 12px;
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-subtle);
+    border-radius: 6px;
+    color: var(--text-muted);
+    font-family: var(--font-body);
+    font-size: 0.8rem;
+    cursor: pointer;
+    transition: all var(--transition-fast);
+}
+
+.action-btn:hover {
+    background: var(--bg-tertiary);
+    border-color: var(--border-medium);
+    color: var(--text-primary);
+}
+
+.action-btn.copied {
+    background: var(--accent-subtle);
+    border-color: var(--accent-primary);
+    color: var(--accent-primary);
+}
+
+.action-btn svg {
+    width: 14px;
+    height: 14px;
+}
+
+/* Loading Indicator */
+.loading-indicator {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 64px;
+    color: var(--text-muted);
+    font-size: 0.95rem;
+    gap: 16px;
+}
+
+.loading-spinner {
+    width: 32px;
+    height: 32px;
+    border: 3px solid var(--border-subtle);
+    border-top-color: var(--accent-primary);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+/* Error State */
+.error-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 64px;
+    text-align: center;
+}
+
+.error-icon {
+    width: 48px;
+    height: 48px;
+    background: var(--accent-subtle);
+    color: var(--accent-primary);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+    font-weight: 600;
+    margin-bottom: 16px;
+}
+
+.error-state h2 {
+    font-family: var(--font-display);
+    font-size: 1.25rem;
+    font-weight: 500;
+    color: var(--text-primary);
+    margin-bottom: 8px;
+}
+
+.error-state p {
+    font-size: 0.9rem;
+    color: var(--text-muted);
+}
+
+/* Rendered Markdown Content Styles */
+#content-area h2 {
+    font-family: var(--font-display);
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin: 32px 0 16px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid var(--border-subtle);
+}
+
+#content-area h2:first-child {
+    margin-top: 0;
+}
+
+#content-area p {
+    margin: 12px 0;
+    line-height: 1.7;
+}
+
+#content-area pre {
+    background: var(--bg-code);
+    border-radius: 12px;
+    padding: 20px 24px;
+    overflow-x: auto;
+    margin: 16px 0;
+    box-shadow: var(--shadow-md);
+}
+
+#content-area code {
+    font-family: var(--font-mono);
+    font-size: 0.85rem;
+}
+
+#content-area pre code {
+    background: none;
+    padding: 0;
+    color: #E5E5E5;
+}
+
+#content-area code:not(pre code) {
+    background: var(--bg-tertiary);
+    color: var(--accent-primary);
+    padding: 3px 8px;
+    border-radius: 6px;
+    font-weight: 500;
+}
+
+/* Tool blocks (details elements) */
+#content-area details.tool-block {
+    margin: 16px 0;
+    border: 1px solid var(--border-medium);
+    border-radius: 12px;
+    overflow: hidden;
+    background: var(--bg-secondary);
+    box-shadow: var(--shadow-sm);
+}
+
+#content-area details.tool-block summary {
+    background: var(--bg-tertiary);
+    padding: 12px 16px;
+    font-size: 0.85rem;
+    font-weight: 500;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    list-style: none;
+    user-select: none;
+    transition: background-color var(--transition-fast);
+}
+
+#content-area details.tool-block summary::-webkit-details-marker {
+    display: none;
+}
+
+#content-area details.tool-block summary:hover {
+    background: var(--border-subtle);
+}
+
+#content-area details.tool-block summary .tool-icon {
+    width: 18px;
+    height: 18px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--accent-primary);
+    color: white;
+    border-radius: 4px;
+    font-size: 10px;
+    font-weight: 600;
+}
+
+#content-area details.tool-block summary .tool-icon.result {
+    background: #059669;
+}
+
+#content-area details.tool-block summary .tool-name {
+    font-family: var(--font-mono);
+    color: var(--text-secondary);
+}
+
+#content-area details.tool-block summary .tool-toggle {
+    margin-left: auto;
+    color: var(--text-muted);
+    transition: transform var(--transition-fast);
+}
+
+#content-area details.tool-block[open] summary .tool-toggle {
+    transform: rotate(180deg);
+}
+
+#content-area details.tool-block > *:not(summary) {
+    padding: 0;
+}
+
+#content-area details.tool-block pre {
+    margin: 0;
+    border-radius: 0;
+    max-height: 320px;
+    overflow: auto;
+}
+
+/* Message blocks created by JavaScript */
+#content-area .message {
+    display: flex;
+    gap: 16px;
+    margin: 24px 0;
+    animation: messageIn 0.3s ease-out backwards;
+}
+
+#content-area .message::before {
+    content: '';
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    flex-shrink: 0;
+    margin-top: 4px;
+}
+
+#content-area .message.user::before {
+    background: linear-gradient(135deg, #78716C 0%, #57534E 100%);
+}
+
+#content-area .message.assistant::before {
+    background: linear-gradient(135deg, var(--accent-primary) 0%, #EA580C 100%);
+}
+
+#content-area .message-body {
+    flex: 1;
+    min-width: 0;
+}
+
+#content-area .message-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 8px;
+}
+
+#content-area .message-role {
+    font-size: 0.8rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+#content-area .message-role.user {
+    color: var(--text-secondary);
+}
+
+#content-area .message-role.assistant {
+    color: var(--accent-primary);
+}
+
+#content-area .message-content {
+    font-size: 0.95rem;
+    line-height: 1.75;
+    color: var(--text-primary);
+}
+
+#content-area .message.assistant .message-content {
+    font-family: var(--font-display);
+    font-weight: 400;
+}
+`

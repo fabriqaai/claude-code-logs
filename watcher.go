@@ -298,42 +298,23 @@ func StartWatcher(ctx context.Context, config WatchConfig) error {
 	return watcher.Watch(ctx)
 }
 
-// regenerateProject reloads a project and regenerates its HTML
+// regenerateProject reloads a project and regenerates its Markdown files
 func regenerateProject(sourceDir, outputDir, projectFolder string) error {
-	// Create project struct
-	project := Project{
-		FolderName: projectFolder,
-		Path:       DecodeProjectPath(projectFolder),
-	}
+	_ = projectFolder // Currently regenerates all projects; mtime check handles efficiency
 
-	// Load sessions for this project
-	if err := LoadProjectWithSessions(sourceDir, &project); err != nil {
-		return fmt.Errorf("loading project sessions: %w", err)
-	}
-
-	// Load all projects for navigation (needed for templates)
+	// Load all projects (needed for index files)
 	allProjects, err := LoadAllProjects(sourceDir)
 	if err != nil {
 		return fmt.Errorf("loading all projects: %w", err)
 	}
 
-	// Create generator
-	gen, err := NewGenerator(outputDir, allProjects)
+	// Generate markdown (with force=false for incremental updates)
+	result, err := GenerateAllMarkdown(allProjects, outputDir, sourceDir, false)
 	if err != nil {
-		return fmt.Errorf("creating generator: %w", err)
+		return fmt.Errorf("generating markdown: %w", err)
 	}
 
-	// Regenerate this project's pages
-	if err := gen.GenerateProjectPages(&project); err != nil {
-		return fmt.Errorf("generating project pages: %w", err)
-	}
-
-	// Regenerate main index (to update session counts, etc.)
-	if err := gen.GenerateIndex(); err != nil {
-		return fmt.Errorf("generating index: %w", err)
-	}
-
-	fmt.Printf("Regenerated %d sessions for %s\n", len(project.Sessions), project.Path)
+	fmt.Printf("Regenerated: %d generated, %d skipped\n", result.Generated, result.Skipped)
 	return nil
 }
 
