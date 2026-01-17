@@ -183,6 +183,11 @@ func ParseSession(filePath string, sessionID string) (*Session, error) {
 			}
 			session.Messages = append(session.Messages, *msg)
 
+			// Capture CWD from first entry that has it (actual project path)
+			if session.CWD == "" && entry.CWD != "" {
+				session.CWD = entry.CWD
+			}
+
 			// Update session timestamps
 			if session.CreatedAt.IsZero() || msg.Timestamp.Before(session.CreatedAt) {
 				session.CreatedAt = msg.Timestamp
@@ -332,6 +337,16 @@ func LoadProjectWithSessions(projectsPath string, project *Project) error {
 		return err
 	}
 	project.Sessions = sessions
+
+	// Use actual CWD from sessions if available (fixes path decoding ambiguity)
+	// Sessions are sorted newest first, so use the first session's CWD
+	for _, s := range sessions {
+		if s.CWD != "" {
+			project.Path = s.CWD
+			break
+		}
+	}
+
 	return nil
 }
 

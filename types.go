@@ -20,6 +20,7 @@ type Session struct {
 	CreatedAt  time.Time // First message timestamp
 	UpdatedAt  time.Time // Last message timestamp
 	SourcePath string    // Full path to source JSONL file
+	CWD        string    // Working directory from JSONL (actual project path)
 }
 
 // Message represents a single message in a session
@@ -43,13 +44,14 @@ type ContentBlock struct {
 
 // jsonlEntry represents a raw JSONL line (used for initial parsing)
 type jsonlEntry struct {
-	Type      string          `json:"type"`
-	Summary   string          `json:"summary,omitempty"`
-	LeafUUID  string          `json:"leafUuid,omitempty"`
-	UUID      string          `json:"uuid,omitempty"`
-	ParentUUID *string        `json:"parentUuid,omitempty"`
-	Timestamp string          `json:"timestamp,omitempty"`
-	Message   json.RawMessage `json:"message,omitempty"`
+	Type       string          `json:"type"`
+	Summary    string          `json:"summary,omitempty"`
+	LeafUUID   string          `json:"leafUuid,omitempty"`
+	UUID       string          `json:"uuid,omitempty"`
+	ParentUUID *string         `json:"parentUuid,omitempty"`
+	Timestamp  string          `json:"timestamp,omitempty"`
+	Message    json.RawMessage `json:"message,omitempty"`
+	CWD        string          `json:"cwd,omitempty"` // Working directory (actual project path)
 }
 
 // messageContent represents the message field in a JSONL entry
