@@ -9,10 +9,13 @@ Blog article about this project https://www.cengizhan.com/p/announcing-claude-co
 - **Markdown-First**: Generates Markdown files with YAML frontmatter for easy archival and version control
 - **Server-Side Rendering**: HTML pages rendered at runtime with caching for fast consecutive requests
 - **Client-Side Rendering**: Markdown content rendered in browser using marked.js + highlight.js
-- **Full-Text Search**: Search across all messages with highlighted results
+- **Full-Text Search**: Search across all messages with highlighted results and full-page overlay
+- **Inline Search**: Filter messages within a session with real-time highlighting
+- **Hide Tool Calls**: Toggle to hide tool calls for a compact conversation view
 - **Tree View Sidebar**: Collapsible project/session tree with resizable width
 - **Card-Based Layout**: Clean card views for projects and sessions
 - **Download & Copy**: Download or copy session content as Markdown
+- **Copy JSONL Path**: Quick copy of source JSONL file path to clipboard
 - **File Watching**: Auto-regenerate when chat logs change
 - **Local Server**: Browse your logs at `http://localhost:8080`
 - **Mobile Responsive**: Works on desktop and mobile devices
