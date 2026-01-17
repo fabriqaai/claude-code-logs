@@ -14,10 +14,11 @@ import (
 
 // WatchConfig configures the file watcher
 type WatchConfig struct {
-	SourceDir     string        // Claude projects directory
-	OutputDir     string        // HTML output directory
-	PollInterval  time.Duration // Interval for scanning new directories
-	DebounceDelay time.Duration // Delay before regenerating after changes
+	SourceDir        string        // Claude projects directory
+	OutputDir        string        // HTML output directory
+	PollInterval     time.Duration // Interval for scanning new directories
+	DebounceDelay    time.Duration // Delay before regenerating after changes
+	SelectedProjects []string      // Project folder names to watch (nil = all projects)
 }
 
 // DefaultWatchConfig returns the default watcher configuration
@@ -75,8 +76,12 @@ func (w *Watcher) Watch(ctx context.Context) error {
 		return fmt.Errorf("adding watches: %w", err)
 	}
 
-	fmt.Printf("Watching for changes in %s\n", w.config.SourceDir)
-	fmt.Printf("Poll interval: %v, Debounce delay: %v\n", w.config.PollInterval, w.config.DebounceDelay)
+	if w.config.SelectedProjects != nil {
+		fmt.Printf("Watching %d selected projects for changes\n", len(w.config.SelectedProjects))
+	} else {
+		fmt.Printf("Watching for changes in %s\n", w.config.SourceDir)
+	}
+	logVerbose("Poll interval: %v, Debounce delay: %v", w.config.PollInterval, w.config.DebounceDelay)
 
 	// Start directory scanner for new project folders
 	scanTicker := time.NewTicker(w.config.PollInterval)
@@ -109,7 +114,7 @@ func (w *Watcher) Watch(ctx context.Context) error {
 
 // addWatches adds watches for the source directory and all project subdirectories
 func (w *Watcher) addWatches() error {
-	// Watch the root projects directory
+	// Watch the root projects directory (for new projects)
 	if err := w.fsWatcher.Add(w.config.SourceDir); err != nil {
 		return fmt.Errorf("watching source directory: %w", err)
 	}
@@ -125,6 +130,11 @@ func (w *Watcher) addWatches() error {
 			continue
 		}
 
+		// Skip if we have a filter and this project isn't in it
+		if !w.isProjectSelected(entry.Name()) {
+			continue
+		}
+
 		projectPath := filepath.Join(w.config.SourceDir, entry.Name())
 		if err := w.fsWatcher.Add(projectPath); err != nil {
 			fmt.Fprintf(os.Stderr, "Warning: failed to watch %s: %v\n", projectPath, err)
@@ -135,8 +145,27 @@ func (w *Watcher) addWatches() error {
 	return nil
 }
 
+// isProjectSelected returns true if the project should be watched
+// Returns true if no filter is set (SelectedProjects is nil) or if the project is in the filter
+func (w *Watcher) isProjectSelected(projectFolder string) bool {
+	if w.config.SelectedProjects == nil {
+		return true // No filter, watch all
+	}
+	for _, p := range w.config.SelectedProjects {
+		if p == projectFolder {
+			return true
+		}
+	}
+	return false
+}
+
 // scanForNewDirectories checks for new project directories and adds watches
 func (w *Watcher) scanForNewDirectories() {
+	// Skip scanning for new directories if we have a specific project filter
+	if w.config.SelectedProjects != nil {
+		return
+	}
+
 	entries, err := os.ReadDir(w.config.SourceDir)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Warning: failed to scan for new directories: %v\n", err)
@@ -172,8 +201,8 @@ func (w *Watcher) scanForNewDirectories() {
 func (w *Watcher) handleEvent(event fsnotify.Event) {
 	// Only care about .jsonl files
 	if !strings.HasSuffix(event.Name, ".jsonl") {
-		// Check if it's a new directory being created
-		if event.Op&fsnotify.Create != 0 {
+		// Check if it's a new directory being created (only if no filter)
+		if event.Op&fsnotify.Create != 0 && w.config.SelectedProjects == nil {
 			info, err := os.Stat(event.Name)
 			if err == nil && info.IsDir() {
 				// New project directory - add watch
@@ -191,6 +220,11 @@ func (w *Watcher) handleEvent(event fsnotify.Event) {
 	// Path format: /path/to/projects/-Project-Name/session.jsonl
 	dir := filepath.Dir(event.Name)
 	projectFolder := filepath.Base(dir)
+
+	// Skip if project is not in our selection
+	if !w.isProjectSelected(projectFolder) {
+		return
+	}
 
 	// Handle different event types
 	switch {

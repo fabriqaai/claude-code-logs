@@ -350,5 +350,21 @@ func LoadAllProjects(projectsPath string) ([]Project, error) {
 		}
 	}
 
+	// Sort projects by last update date (most recent first)
+	sort.Slice(projects, func(i, j int) bool {
+		return getProjectLastUpdate(&projects[i]).After(getProjectLastUpdate(&projects[j]))
+	})
+
 	return projects, nil
+}
+
+// getProjectLastUpdate returns the most recent UpdatedAt time from a project's sessions
+func getProjectLastUpdate(project *Project) time.Time {
+	var lastUpdate time.Time
+	for _, session := range project.Sessions {
+		if session.UpdatedAt.After(lastUpdate) {
+			lastUpdate = session.UpdatedAt
+		}
+	}
+	return lastUpdate
 }
