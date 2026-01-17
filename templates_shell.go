@@ -84,10 +84,10 @@ const sessionShellTemplate = `<!DOCTYPE html>
                 <h1 class="page-title" id="session-title">{{.Session.Summary}}</h1>
                 <p class="page-subtitle" id="session-meta">{{.Session.CreatedAt.Format "January 2, 2006 at 3:04 PM"}} · {{len .Session.Messages}} messages</p>
                 <div class="page-actions" id="action-bar">
-                    <a href="file://{{.Session.SourcePath}}" class="page-action-link" title="{{.Session.SourcePath}}">
+                    <button class="action-btn" id="copy-jsonl-path-btn" title="{{.Session.SourcePath}}" data-path="{{.Session.SourcePath}}">
                         <svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4z" clip-rule="evenodd"/></svg>
-                        View Source JSONL
-                    </a>
+                        <span class="copy-jsonl-text">Copy JSONL Path</span>
+                    </button>
                     <button class="action-btn" id="download-btn" title="Download Markdown">
                         <svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clip-rule="evenodd"/></svg>
                         Download MD
@@ -98,6 +98,22 @@ const sessionShellTemplate = `<!DOCTYPE html>
                     </button>
                 </div>
             </header>
+
+            <!-- Filter toolbar -->
+            <div class="filter-toolbar">
+                <div class="filter-search">
+                    <svg class="filter-search-icon" viewBox="0 0 20 20" fill="currentColor">
+                        <path fill-rule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clip-rule="evenodd"/>
+                    </svg>
+                    <input type="text" id="pageSearch" class="filter-search-input" placeholder="Search in this session...">
+                    <span id="searchCount" class="filter-search-count"></span>
+                    <button type="button" id="clearSearch" class="filter-clear-btn" style="display:none;">×</button>
+                </div>
+                <label class="filter-checkbox">
+                    <input type="checkbox" id="hideTools">
+                    <span class="filter-checkbox-label">Hide tool calls</span>
+                </label>
+            </div>
 
             <!-- Content loaded dynamically from MD file -->
             <div id="content-area" class="message-list">
@@ -138,7 +154,11 @@ const sessionShellTemplate = `<!DOCTYPE html>
 
         // Custom renderer for code blocks with highlight.js
         var renderer = new marked.Renderer();
-        renderer.code = function(code, lang) {
+        renderer.code = function(codeObj) {
+            // Handle both old API (code, lang) and new API (object with text, lang)
+            var code = typeof codeObj === 'string' ? codeObj : (codeObj.text || codeObj.raw || '');
+            var lang = typeof codeObj === 'string' ? arguments[1] : (codeObj.lang || '');
+
             var highlighted;
             if (lang && hljs.getLanguage(lang)) {
                 highlighted = hljs.highlight(code, { language: lang }).value;
@@ -149,21 +169,26 @@ const sessionShellTemplate = `<!DOCTYPE html>
         };
         marked.setOptions({ renderer: renderer });
 
-        // Fetch and render
+        // Load and render markdown
+        function loadAndRender(md) {
+            rawMarkdown = md;
+            var parsed = parseFrontmatter(md);
+
+            // Render markdown body
+            contentArea.innerHTML = marked.parse(parsed.body);
+
+            // Style the rendered content for conversation display
+            styleContent();
+        }
+
+        // Fetch and render markdown
         fetch(mdUrl)
             .then(function(response) {
                 if (!response.ok) throw new Error('Failed to load');
                 return response.text();
             })
             .then(function(md) {
-                rawMarkdown = md;
-                var parsed = parseFrontmatter(md);
-
-                // Render markdown body
-                contentArea.innerHTML = marked.parse(parsed.body);
-
-                // Style the rendered content for conversation display
-                styleContent();
+                loadAndRender(md);
             })
             .catch(function(err) {
                 contentArea.innerHTML = '<div class="error-state"><div class="error-icon">!</div><h2>Failed to load session</h2><p>The markdown file could not be loaded.</p></div>';
@@ -272,6 +297,265 @@ const sessionShellTemplate = `<!DOCTYPE html>
             }).catch(function(err) {
                 console.error('Copy failed:', err);
             });
+        });
+
+        // Copy JSONL path button
+        var copyJsonlBtn = document.getElementById('copy-jsonl-path-btn');
+        var copyJsonlText = copyJsonlBtn.querySelector('.copy-jsonl-text');
+        copyJsonlBtn.addEventListener('click', function() {
+            var jsonlPath = copyJsonlBtn.getAttribute('data-path');
+            navigator.clipboard.writeText(jsonlPath).then(function() {
+                var originalText = copyJsonlText.textContent;
+                copyJsonlText.textContent = 'Copied!';
+                copyJsonlBtn.classList.add('copied');
+                setTimeout(function() {
+                    copyJsonlText.textContent = originalText;
+                    copyJsonlBtn.classList.remove('copied');
+                }, 2000);
+            }).catch(function(err) {
+                console.error('Copy failed:', err);
+            });
+        });
+
+        // Filter: Hide tool calls checkbox
+        var hideToolsCheckbox = document.getElementById('hideTools');
+        hideToolsCheckbox.addEventListener('change', function() {
+            if (this.checked) {
+                contentArea.classList.add('hide-tools');
+                // Hide messages that only contain tool calls
+                var messages = contentArea.querySelectorAll('.message');
+                messages.forEach(function(msg) {
+                    var content = msg.querySelector('.message-content');
+                    if (content) {
+                        // Check if message only has details (tool blocks) and no other visible content
+                        var children = Array.from(content.children);
+                        var hasNonToolContent = children.some(function(child) {
+                            if (child.tagName === 'DETAILS') return false;
+                            // Check if element has meaningful text
+                            var text = child.textContent.trim();
+                            return text.length > 0;
+                        });
+                        if (!hasNonToolContent) {
+                            msg.classList.add('tools-only');
+                        }
+                    }
+                });
+            } else {
+                contentArea.classList.remove('hide-tools');
+                // Show all messages again
+                var toolsOnlyMsgs = contentArea.querySelectorAll('.tools-only');
+                toolsOnlyMsgs.forEach(function(msg) {
+                    msg.classList.remove('tools-only');
+                });
+            }
+        });
+
+        // Filter: Page search
+        var pageSearchInput = document.getElementById('pageSearch');
+        var searchCountSpan = document.getElementById('searchCount');
+        var clearSearchBtn = document.getElementById('clearSearch');
+        var currentHighlights = [];
+        var currentHighlightIndex = -1;
+        var originalHTML = '';
+
+        function escapeRegExp(string) {
+            return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        }
+
+        // Helper: Check if message only contains tool calls (no visible text content)
+        function isToolOnlyMessage(msg) {
+            var content = msg.querySelector('.message-content');
+            if (!content) return false;
+            var children = Array.from(content.children);
+            return !children.some(function(child) {
+                if (child.tagName === 'DETAILS') return false;
+                var text = child.textContent.trim();
+                return text.length > 0;
+            });
+        }
+
+        // Helper: Apply hide-tools state to mark tool-only messages
+        function applyHideToolsState() {
+            if (!hideToolsCheckbox.checked) return;
+            contentArea.classList.add('hide-tools');
+            var messages = contentArea.querySelectorAll('.message');
+            messages.forEach(function(msg) {
+                if (isToolOnlyMessage(msg)) {
+                    msg.classList.add('tools-only');
+                }
+            });
+        }
+
+        function clearHighlights() {
+            if (originalHTML) {
+                // Restore original content
+                contentArea.innerHTML = originalHTML;
+                styleContent();
+                // Re-apply hide tools state
+                applyHideToolsState();
+            }
+            currentHighlights = [];
+            currentHighlightIndex = -1;
+            searchCountSpan.textContent = '';
+            clearSearchBtn.style.display = 'none';
+        }
+
+        function highlightMatches(query) {
+            if (!query || query.length < 2) {
+                clearHighlights();
+                return;
+            }
+
+            // Store original HTML on first search
+            if (!originalHTML) {
+                originalHTML = contentArea.innerHTML;
+            } else {
+                // Restore original before new search
+                contentArea.innerHTML = originalHTML;
+                styleContent();
+            }
+
+            // Apply hide-tools state first
+            applyHideToolsState();
+
+            var regex = new RegExp('(' + escapeRegExp(query) + ')', 'gi');
+            var messages = Array.from(contentArea.querySelectorAll('.message'));
+            var hideTools = hideToolsCheckbox.checked;
+
+            // Filter out tool-only messages if hide tools is checked
+            var searchableMessages = messages.filter(function(msg, idx) {
+                if (hideTools && isToolOnlyMessage(msg)) {
+                    msg.style.display = 'none';
+                    return false;
+                }
+                return true;
+            });
+
+            var totalMessages = searchableMessages.length;
+
+            // Find which messages contain matches (excluding tool content if hidden)
+            var matchingIndices = [];
+            searchableMessages.forEach(function(msg, idx) {
+                // When hide tools is on, only search in non-tool content
+                var searchText;
+                if (hideTools) {
+                    var content = msg.querySelector('.message-content');
+                    if (content) {
+                        var textParts = [];
+                        Array.from(content.children).forEach(function(child) {
+                            if (child.tagName !== 'DETAILS') {
+                                textParts.push(child.textContent);
+                            }
+                        });
+                        searchText = textParts.join(' ');
+                    } else {
+                        searchText = msg.textContent;
+                    }
+                } else {
+                    searchText = msg.textContent;
+                }
+                if (searchText.match(regex)) {
+                    matchingIndices.push(idx);
+                }
+            });
+
+            // Calculate which messages to show (matching + 3 before/after)
+            var visibleIndices = new Set();
+            matchingIndices.forEach(function(idx) {
+                for (var i = Math.max(0, idx - 3); i <= Math.min(totalMessages - 1, idx + 3); i++) {
+                    visibleIndices.add(i);
+                }
+            });
+
+            // Hide non-matching messages, show matching ones
+            var shownCount = 0;
+            searchableMessages.forEach(function(msg, idx) {
+                if (visibleIndices.has(idx)) {
+                    msg.style.display = '';
+                    shownCount++;
+                } else {
+                    msg.style.display = 'none';
+                }
+            });
+
+            // Highlight text in visible messages
+            var matchCount = 0;
+            searchableMessages.forEach(function(msg, idx) {
+                if (!visibleIndices.has(idx)) return;
+
+                // Walk the DOM to find text nodes (skip details elements if hide tools)
+                function walk(node) {
+                    if (hideTools && node.tagName === 'DETAILS') return;
+                    if (node.nodeType === 3) { // Text node
+                        var text = node.textContent;
+                        if (text.match(regex)) {
+                            var parts = text.split(regex);
+                            if (parts.length > 1) {
+                                var span = document.createElement('span');
+                                parts.forEach(function(part) {
+                                    if (part.match(regex)) {
+                                        var mark = document.createElement('span');
+                                        mark.className = 'search-highlight';
+                                        mark.textContent = part;
+                                        span.appendChild(mark);
+                                        matchCount++;
+                                    } else {
+                                        span.appendChild(document.createTextNode(part));
+                                    }
+                                });
+                                node.parentNode.replaceChild(span, node);
+                            }
+                        }
+                    } else if (node.nodeType === 1 && node.nodeName !== 'SCRIPT' && node.nodeName !== 'STYLE') {
+                        var children = Array.from(node.childNodes);
+                        children.forEach(function(child) { walk(child); });
+                    }
+                }
+                walk(msg);
+            });
+
+            // Update count and show clear button
+            currentHighlights = contentArea.querySelectorAll('.search-highlight');
+            if (matchCount > 0) {
+                searchCountSpan.textContent = shownCount + '/' + totalMessages + ' msgs';
+                clearSearchBtn.style.display = 'block';
+                // Scroll to first match
+                if (currentHighlights.length > 0) {
+                    currentHighlightIndex = 0;
+                    currentHighlights[0].classList.add('current');
+                    currentHighlights[0].scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }
+            } else {
+                searchCountSpan.textContent = 'No results';
+                clearSearchBtn.style.display = 'block';
+            }
+        }
+
+        var searchDebounce;
+        pageSearchInput.addEventListener('input', function() {
+            clearTimeout(searchDebounce);
+            searchDebounce = setTimeout(function() {
+                highlightMatches(pageSearchInput.value);
+            }, 300);
+        });
+
+        // Enter key to jump to next match
+        pageSearchInput.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter' && currentHighlights.length > 0) {
+                e.preventDefault();
+                if (currentHighlightIndex >= 0) {
+                    currentHighlights[currentHighlightIndex].classList.remove('current');
+                }
+                currentHighlightIndex = (currentHighlightIndex + 1) % currentHighlights.length;
+                currentHighlights[currentHighlightIndex].classList.add('current');
+                currentHighlights[currentHighlightIndex].scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }
+        });
+
+        clearSearchBtn.addEventListener('click', function() {
+            pageSearchInput.value = '';
+            clearHighlights();
+            pageSearchInput.focus();
         });
     })();
     </script>

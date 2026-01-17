@@ -157,10 +157,51 @@ func (s *Server) handleStatic(fileServer http.Handler) http.HandlerFunc {
 		// Clean the path
 		path := filepath.Clean(r.URL.Path)
 
+		// Serve embedded logo
+		if path == "/claude-code-icon.png" {
+			w.Header().Set("Content-Type", "image/png")
+			w.Header().Set("Cache-Control", "public, max-age=86400")
+			w.Write(logoData)
+			return
+		}
+
 		// Handle root - render main index
 		if path == "/" || path == "" {
 			s.renderMainIndex(w, r)
 			return
+		}
+
+		// Handle project and session paths without .html extension
+		trimmedPath := strings.TrimPrefix(path, "/")
+		trimmedPath = strings.TrimSuffix(trimmedPath, "/")
+		pathParts := strings.Split(trimmedPath, "/")
+
+		// Single path segment without extension - could be a project slug
+		if len(pathParts) == 1 && !strings.Contains(trimmedPath, ".") {
+			for i := range s.projects {
+				if ProjectSlug(s.projects[i].Path) == trimmedPath {
+					s.renderProjectIndex(w, r, trimmedPath)
+					return
+				}
+			}
+		}
+
+		// Two path segments without extension - could be project/session
+		if len(pathParts) == 2 && !strings.Contains(pathParts[1], ".") {
+			projectSlug := pathParts[0]
+			sessionID := pathParts[1]
+			// Verify this is a valid project/session combination
+			for i := range s.projects {
+				if ProjectSlug(s.projects[i].Path) == projectSlug {
+					for j := range s.projects[i].Sessions {
+						if s.projects[i].Sessions[j].ID == sessionID {
+							s.renderSessionShell(w, r, projectSlug, sessionID)
+							return
+						}
+					}
+					break
+				}
+			}
 		}
 
 		// Check if this is a session HTML request (e.g., /project-slug/session-id.html)

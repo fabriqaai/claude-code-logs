@@ -59,7 +59,6 @@ claude-code-logs serve --dir /custom/path   # Custom output directory
 claude-code-logs serve --watch              # Auto-regenerate on changes
 claude-code-logs serve --list               # Interactively select projects
 claude-code-logs serve --force              # Force regeneration (ignore mtime)
-claude-code-logs serve --include-html-files # Also generate static HTML files
 claude-code-logs serve --verbose            # Verbose output
 ```
 
@@ -128,7 +127,6 @@ Of course! How can I help?
 | `--watch` | `-w` | Auto-regenerate on changes | `false` |
 | `--list` | `-l` | Interactively select projects | `false` |
 | `--force` | `-f` | Force regeneration (ignore mtime) | `false` |
-| `--include-html-files` | | Also generate static HTML files | `false` |
 | `--verbose` | `-v` | Verbose output | `false` |
 
 ## Requirements

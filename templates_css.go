@@ -1164,18 +1164,18 @@ body {
 }
 
 .search-results {
-    position: absolute;
-    top: 100%;
-    left: 0;
-    right: 0;
-    margin-top: 8px;
+    position: fixed;
+    top: 120px;
+    left: 20px;
+    right: 20px;
+    max-width: 900px;
     background: var(--bg-secondary);
     border: 1px solid var(--border-medium);
     border-radius: 12px;
-    box-shadow: var(--shadow-lg);
-    max-height: 400px;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+    max-height: 70vh;
     overflow-y: auto;
-    z-index: 100;
+    z-index: 1000;
     display: none;
 }
 
@@ -1274,6 +1274,144 @@ const shellCSS = `
 .action-btn svg {
     width: 14px;
     height: 14px;
+}
+
+/* Filter Toolbar */
+.filter-toolbar {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 12px 16px;
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-subtle);
+    border-radius: 8px;
+    margin-bottom: 20px;
+    position: relative;
+    z-index: 10;
+}
+
+.filter-search {
+    display: flex;
+    align-items: center;
+    flex: 1;
+    max-width: 400px;
+    position: relative;
+}
+
+.filter-search-icon {
+    position: absolute;
+    left: 10px;
+    width: 16px;
+    height: 16px;
+    color: var(--text-muted);
+    pointer-events: none;
+}
+
+.filter-search-input {
+    width: 100%;
+    padding: 8px 70px 8px 34px;
+    background: var(--bg-primary);
+    border: 1px solid var(--border-subtle);
+    border-radius: 6px;
+    color: var(--text-primary);
+    font-family: var(--font-body);
+    font-size: 0.85rem;
+}
+
+.filter-search-input:focus {
+    outline: none;
+    border-color: var(--accent-primary);
+    box-shadow: 0 0 0 3px var(--accent-subtle);
+}
+
+.filter-search-input::placeholder {
+    color: var(--text-muted);
+}
+
+.filter-search-count {
+    position: absolute;
+    right: 30px;
+    font-size: 0.75rem;
+    color: var(--text-muted);
+}
+
+.filter-clear-btn {
+    position: absolute;
+    right: 8px;
+    width: 18px;
+    height: 18px;
+    padding: 0;
+    background: var(--bg-tertiary);
+    border: none;
+    border-radius: 50%;
+    color: var(--text-muted);
+    font-size: 14px;
+    line-height: 1;
+    cursor: pointer;
+}
+
+.filter-clear-btn:hover {
+    background: var(--border-medium);
+    color: var(--text-primary);
+}
+
+.filter-checkbox {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+    white-space: nowrap;
+}
+
+.filter-checkbox input {
+    width: 16px;
+    height: 16px;
+    accent-color: var(--accent-primary);
+    cursor: pointer;
+}
+
+.filter-checkbox-label {
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+}
+
+/* Search highlight */
+.search-highlight {
+    background: #fbbf24;
+    color: #000;
+    padding: 1px 2px;
+    border-radius: 2px;
+}
+
+.search-highlight.current {
+    background: #f97316;
+}
+
+/* Hide tools mode */
+.hide-tools details,
+.hide-tools .tool-block {
+    display: none !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    height: 0 !important;
+    overflow: hidden !important;
+}
+
+/* Hide messages that only contain tool calls */
+.hide-tools .tools-only {
+    display: none !important;
+}
+
+@media (max-width: 768px) {
+    .filter-toolbar {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 12px;
+    }
+
+    .filter-search {
+        max-width: none;
+    }
 }
 
 /* Loading Indicator */

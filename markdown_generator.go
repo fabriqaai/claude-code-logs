@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	"html/template"
 	"os"
 	"path/filepath"
 	"sort"
@@ -11,15 +10,9 @@ import (
 
 // MarkdownGenerator handles Markdown file generation from parsed session data
 type MarkdownGenerator struct {
-	outputDir   string
-	sourceDir   string
-	force       bool
-	includeHTML bool
-	allProjects []Project
-	// Templates (only initialized if includeHTML is true)
-	shellTmpl       *template.Template
-	indexTmpl       *template.Template
-	projectIndexTmpl *template.Template
+	outputDir string
+	sourceDir string
+	force     bool
 }
 
 // GenerationResult contains statistics about the generation process
@@ -30,42 +23,12 @@ type GenerationResult struct {
 }
 
 // NewMarkdownGenerator creates a new MarkdownGenerator instance
-func NewMarkdownGenerator(outputDir, sourceDir string, force, includeHTML bool, projects []Project) (*MarkdownGenerator, error) {
-	gen := &MarkdownGenerator{
-		outputDir:   outputDir,
-		sourceDir:   sourceDir,
-		force:       force,
-		includeHTML: includeHTML,
-		allProjects: projects,
+func NewMarkdownGenerator(outputDir, sourceDir string, force bool) *MarkdownGenerator {
+	return &MarkdownGenerator{
+		outputDir: outputDir,
+		sourceDir: sourceDir,
+		force:     force,
 	}
-
-	// Only parse templates if includeHTML is requested
-	if includeHTML {
-		funcMap := template.FuncMap{
-			"ProjectSlug": ProjectSlug,
-		}
-
-		shellTmpl, err := template.New("shell").Funcs(funcMap).Parse(sessionShellTemplate)
-		if err != nil {
-			return nil, fmt.Errorf("parsing shell template: %w", err)
-		}
-
-		indexTmpl, err := template.New("index").Funcs(funcMap).Parse(indexTemplate)
-		if err != nil {
-			return nil, fmt.Errorf("parsing index template: %w", err)
-		}
-
-		projectIndexTmpl, err := template.New("projectIndex").Funcs(funcMap).Parse(projectIndexTemplate)
-		if err != nil {
-			return nil, fmt.Errorf("parsing project index template: %w", err)
-		}
-
-		gen.shellTmpl = shellTmpl
-		gen.indexTmpl = indexTmpl
-		gen.projectIndexTmpl = projectIndexTmpl
-	}
-
-	return gen, nil
 }
 
 // GenerateAll generates Markdown files for all projects and sessions
@@ -100,8 +63,8 @@ func (g *MarkdownGenerator) GenerateAll(projects []Project) (*GenerationResult, 
 				continue
 			}
 
-			// Generate session markdown and HTML shell
-			if err := g.GenerateSession(session, project, projectSlug); err != nil {
+			// Generate session markdown
+			if err := g.GenerateSession(session, projectSlug); err != nil {
 				result.Errors = append(result.Errors, fmt.Errorf("session %s: %w", session.ID, err))
 				continue
 			}
@@ -112,13 +75,6 @@ func (g *MarkdownGenerator) GenerateAll(projects []Project) (*GenerationResult, 
 		if err := g.GenerateProjectIndex(project, projectSlug); err != nil {
 			result.Errors = append(result.Errors, fmt.Errorf("project index %s: %w", projectSlug, err))
 		}
-
-		// Generate project index (HTML) if requested
-		if g.includeHTML {
-			if err := g.GenerateProjectIndexHTML(project, projectSlug); err != nil {
-				result.Errors = append(result.Errors, fmt.Errorf("project index HTML %s: %w", projectSlug, err))
-			}
-		}
 	}
 
 	// Generate main index (MD)
@@ -126,23 +82,11 @@ func (g *MarkdownGenerator) GenerateAll(projects []Project) (*GenerationResult, 
 		result.Errors = append(result.Errors, fmt.Errorf("main index: %w", err))
 	}
 
-	// Generate main index (HTML) if requested
-	if g.includeHTML {
-		if err := g.GenerateMainIndexHTML(projects); err != nil {
-			result.Errors = append(result.Errors, fmt.Errorf("main index HTML: %w", err))
-		}
-
-		// Copy logo file
-		if err := g.CopyLogo(); err != nil {
-			result.Errors = append(result.Errors, fmt.Errorf("copying logo: %w", err))
-		}
-	}
-
 	return result, nil
 }
 
 // GenerateSession generates a Markdown file for a single session
-func (g *MarkdownGenerator) GenerateSession(session *Session, project *Project, projectSlug string) error {
+func (g *MarkdownGenerator) GenerateSession(session *Session, projectSlug string) error {
 	// Compute source hash
 	sourceHash, err := ComputeFileHash(session.SourcePath)
 	if err != nil {
@@ -170,16 +114,7 @@ func (g *MarkdownGenerator) GenerateSession(session *Session, project *Project, 
 
 	// Write MD file
 	mdPath := filepath.Join(g.outputDir, projectSlug, session.ID+".md")
-	if err := g.writeFile(mdPath, []byte(content.String())); err != nil {
-		return err
-	}
-
-	// Generate HTML shell if requested
-	if g.includeHTML {
-		return g.GenerateSessionShell(session, project, projectSlug)
-	}
-
-	return nil
+	return g.writeFile(mdPath, []byte(content.String()))
 }
 
 // GenerateMainIndex generates the main index.md listing all projects
@@ -242,92 +177,6 @@ func (g *MarkdownGenerator) GenerateProjectIndex(project *Project, projectSlug s
 
 	outputPath := filepath.Join(g.outputDir, projectSlug, "index.md")
 	return g.writeFile(outputPath, []byte(content.String()))
-}
-
-// GenerateSessionShell generates an HTML shell file for a session
-func (g *MarkdownGenerator) GenerateSessionShell(session *Session, project *Project, projectSlug string) error {
-	data := struct {
-		Session     *Session
-		Project     *Project
-		AllProjects []Project
-	}{
-		Session:     session,
-		Project:     project,
-		AllProjects: g.allProjects,
-	}
-
-	htmlPath := filepath.Join(g.outputDir, projectSlug, session.ID+".html")
-	return g.writeTemplate(g.shellTmpl, data, htmlPath)
-}
-
-// GenerateMainIndexHTML generates the main index.html using the index template
-func (g *MarkdownGenerator) GenerateMainIndexHTML(projects []Project) error {
-	data := struct {
-		Projects []Project
-	}{
-		Projects: projects,
-	}
-
-	outputPath := filepath.Join(g.outputDir, "index.html")
-	return g.writeTemplate(g.indexTmpl, data, outputPath)
-}
-
-// GenerateProjectIndexHTML generates the project index.html using the project index template
-func (g *MarkdownGenerator) GenerateProjectIndexHTML(project *Project, projectSlug string) error {
-	data := struct {
-		Project     *Project
-		AllProjects []Project
-	}{
-		Project:     project,
-		AllProjects: g.allProjects,
-	}
-
-	outputPath := filepath.Join(g.outputDir, projectSlug, "index.html")
-	return g.writeTemplate(g.projectIndexTmpl, data, outputPath)
-}
-
-// CopyLogo copies the embedded logo file to the output directory
-func (g *MarkdownGenerator) CopyLogo() error {
-	logoPath := filepath.Join(g.outputDir, "claude-code-icon.png")
-	return os.WriteFile(logoPath, logoData, 0644)
-}
-
-// writeTemplate writes a template to a file using atomic write
-func (g *MarkdownGenerator) writeTemplate(tmpl *template.Template, data interface{}, outputPath string) error {
-	dir := filepath.Dir(outputPath)
-
-	// Create temp file in the same directory for atomic rename
-	tmpFile, err := os.CreateTemp(dir, "tmp-*.html")
-	if err != nil {
-		return fmt.Errorf("creating temp file: %w", err)
-	}
-	tmpPath := tmpFile.Name()
-
-	// Clean up temp file on error
-	defer func() {
-		if tmpPath != "" {
-			os.Remove(tmpPath)
-		}
-	}()
-
-	// Execute template to temp file
-	if err := tmpl.Execute(tmpFile, data); err != nil {
-		tmpFile.Close()
-		return fmt.Errorf("executing template: %w", err)
-	}
-
-	if err := tmpFile.Close(); err != nil {
-		return fmt.Errorf("closing temp file: %w", err)
-	}
-
-	// Atomic rename
-	if err := os.Rename(tmpPath, outputPath); err != nil {
-		return fmt.Errorf("renaming temp file: %w", err)
-	}
-
-	// Clear tmpPath so defer doesn't try to remove it
-	tmpPath = ""
-	return nil
 }
 
 // ShouldRegenerate determines if a session needs regeneration based on mtime
@@ -446,10 +295,7 @@ func capitalizeFirst(s string) string {
 }
 
 // GenerateAllMarkdown is the main entry point for generating all Markdown files
-func GenerateAllMarkdown(projects []Project, outputDir, sourceDir string, force, includeHTML bool) (*GenerationResult, error) {
-	gen, err := NewMarkdownGenerator(outputDir, sourceDir, force, includeHTML, projects)
-	if err != nil {
-		return nil, fmt.Errorf("creating markdown generator: %w", err)
-	}
+func GenerateAllMarkdown(projects []Project, outputDir, sourceDir string, force bool) (*GenerationResult, error) {
+	gen := NewMarkdownGenerator(outputDir, sourceDir, force)
 	return gen.GenerateAll(projects)
 }

@@ -10,11 +10,10 @@ import (
 )
 
 var (
-	servePort        int
-	serveWatch       bool
-	serveList        bool
-	serveForce       bool
-	serveIncludeHTML bool
+	servePort  int
+	serveWatch bool
+	serveList  bool
+	serveForce bool
 )
 
 var serveCmd = &cobra.Command{
@@ -38,9 +37,6 @@ With --list flag, you can interactively select which projects to serve.
 
 With --force flag, regenerate all files regardless of modification time.
 
-With --include-html-files flag, also generate static HTML files alongside Markdown.
-This is useful for offline viewing or static hosting.
-
 Example:
   claude-code-logs serve
   claude-code-logs serve --port 3000
@@ -48,8 +44,7 @@ Example:
   claude-code-logs serve --watch               (regenerates on changes)
   claude-code-logs serve --list                (select projects interactively)
   claude-code-logs serve --list --watch        (select projects + watch mode)
-  claude-code-logs serve --force               (regenerate all files)
-  claude-code-logs serve --include-html-files  (also generate static HTML)`,
+  claude-code-logs serve --force               (regenerate all files)`,
 	RunE: runServe,
 }
 
@@ -59,7 +54,6 @@ func init() {
 	serveCmd.Flags().BoolVarP(&serveWatch, "watch", "w", false, "Enable watch mode (regenerate on changes)")
 	serveCmd.Flags().BoolVarP(&serveList, "list", "l", false, "Interactively select projects to serve")
 	serveCmd.Flags().BoolVarP(&serveForce, "force", "f", false, "Force regeneration of all files (ignore mtime)")
-	serveCmd.Flags().BoolVar(&serveIncludeHTML, "include-html-files", false, "Also generate static HTML files alongside Markdown")
 }
 
 // RegisterServeFlags adds serve flags to a command (used for root command default)
@@ -68,7 +62,6 @@ func RegisterServeFlags(cmd *cobra.Command) {
 	cmd.Flags().BoolVarP(&serveWatch, "watch", "w", false, "Enable watch mode (regenerate on changes)")
 	cmd.Flags().BoolVarP(&serveList, "list", "l", false, "Interactively select projects to serve")
 	cmd.Flags().BoolVarP(&serveForce, "force", "f", false, "Force regeneration of all files (ignore mtime)")
-	cmd.Flags().BoolVar(&serveIncludeHTML, "include-html-files", false, "Also generate static HTML files alongside Markdown")
 }
 
 func runServe(cmd *cobra.Command, args []string) error {
@@ -87,7 +80,6 @@ func runServe(cmd *cobra.Command, args []string) error {
 	logVerbose("Port: %d", servePort)
 	logVerbose("Watch mode: %v", serveWatch)
 	logVerbose("Force regeneration: %v", serveForce)
-	logVerbose("Include HTML files: %v", serveIncludeHTML)
 
 	// Check if output directory is writable (creates if needed)
 	if err := ensureWritableDir(outDir); err != nil {
@@ -137,7 +129,7 @@ func runServe(cmd *cobra.Command, args []string) error {
 		}
 		fmt.Printf("Found %d projects with %d sessions\n", len(projects), totalSessions)
 
-		result, err := GenerateAllMarkdown(projects, outDir, projectsPath, serveForce, serveIncludeHTML)
+		result, err := GenerateAllMarkdown(projects, outDir, projectsPath, serveForce)
 		if err != nil {
 			return fmt.Errorf("generating Markdown: %w", err)
 		}
