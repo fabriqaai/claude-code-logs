@@ -308,8 +308,8 @@ func regenerateProject(sourceDir, outputDir, projectFolder string) error {
 		return fmt.Errorf("loading all projects: %w", err)
 	}
 
-	// Generate markdown (with force=false for incremental updates)
-	result, err := GenerateAllMarkdown(allProjects, outputDir, sourceDir, false)
+	// Generate markdown (with force=false for incremental updates, no static HTML)
+	result, err := GenerateAllMarkdown(allProjects, outputDir, sourceDir, false, false)
 	if err != nil {
 		return fmt.Errorf("generating markdown: %w", err)
 	}

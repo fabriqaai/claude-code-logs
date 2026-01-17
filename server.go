@@ -1,36 +1,76 @@
 package main
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"fmt"
+	"html/template"
 	"net"
 	"net/http"
 	"os"
 	"os/signal"
 	"path/filepath"
 	"strings"
+	"sync"
 	"syscall"
 	"time"
 )
 
+// cacheEntry represents a cached rendered HTML page
+type cacheEntry struct {
+	content   []byte
+	timestamp time.Time
+}
+
 // Server represents the HTTP server for serving HTML and search API
 type Server struct {
-	port      int
-	outputDir string
-	index     *SearchIndex
-	projects  []Project
-	server    *http.Server
+	port         int
+	outputDir    string
+	index        *SearchIndex
+	projects     []Project
+	server       *http.Server
+	shellTmpl    *template.Template
+	indexTmpl    *template.Template
+	projectTmpl  *template.Template
+	// Cache for rendered HTML pages
+	cache      map[string]*cacheEntry
+	cacheMu    sync.RWMutex
+	cacheTTL   time.Duration
 }
 
 // NewServer creates a new server instance
-func NewServer(port int, outputDir string, projects []Project) *Server {
-	return &Server{
-		port:      port,
-		outputDir: outputDir,
-		projects:  projects,
-		index:     NewSearchIndex(projects),
+func NewServer(port int, outputDir string, projects []Project) (*Server, error) {
+	funcMap := template.FuncMap{
+		"ProjectSlug": ProjectSlug,
 	}
+
+	shellTmpl, err := template.New("shell").Funcs(funcMap).Parse(sessionShellTemplate)
+	if err != nil {
+		return nil, fmt.Errorf("parsing shell template: %w", err)
+	}
+
+	indexTmpl, err := template.New("index").Funcs(funcMap).Parse(indexTemplate)
+	if err != nil {
+		return nil, fmt.Errorf("parsing index template: %w", err)
+	}
+
+	projectTmpl, err := template.New("project").Funcs(funcMap).Parse(projectIndexTemplate)
+	if err != nil {
+		return nil, fmt.Errorf("parsing project template: %w", err)
+	}
+
+	return &Server{
+		port:        port,
+		outputDir:   outputDir,
+		projects:    projects,
+		index:       NewSearchIndex(projects),
+		shellTmpl:   shellTmpl,
+		indexTmpl:   indexTmpl,
+		projectTmpl: projectTmpl,
+		cache:       make(map[string]*cacheEntry),
+		cacheTTL:    30 * time.Second, // Cache HTML for 30 seconds
+	}, nil
 }
 
 // Start starts the HTTP server and blocks until shutdown
@@ -105,7 +145,7 @@ func (s *Server) Shutdown(ctx context.Context) error {
 	return s.server.Shutdown(ctx)
 }
 
-// handleStatic serves static files with proper content types
+// handleStatic serves static files and renders HTML dynamically
 func (s *Server) handleStatic(fileServer http.Handler) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		// Only allow GET and HEAD
@@ -117,12 +157,33 @@ func (s *Server) handleStatic(fileServer http.Handler) http.HandlerFunc {
 		// Clean the path
 		path := filepath.Clean(r.URL.Path)
 
-		// Serve index.html for root
+		// Handle root - render main index
 		if path == "/" || path == "" {
-			path = "/index.html"
+			s.renderMainIndex(w, r)
+			return
 		}
 
-		// Check if file exists
+		// Check if this is a session HTML request (e.g., /project-slug/session-id.html)
+		if strings.HasSuffix(path, ".html") && path != "/index.html" {
+			parts := strings.Split(strings.TrimPrefix(path, "/"), "/")
+			if len(parts) == 2 {
+				projectSlug := parts[0]
+				filename := parts[1]
+
+				// Check if it's a project index
+				if filename == "index.html" {
+					s.renderProjectIndex(w, r, projectSlug)
+					return
+				}
+
+				// Otherwise it's a session page
+				sessionID := strings.TrimSuffix(filename, ".html")
+				s.renderSessionShell(w, r, projectSlug, sessionID)
+				return
+			}
+		}
+
+		// For static files (.md, .png, etc.), check if file exists
 		fullPath := filepath.Join(s.outputDir, path)
 		if _, err := os.Stat(fullPath); os.IsNotExist(err) {
 			http.NotFound(w, r)
@@ -140,11 +201,179 @@ func (s *Server) handleStatic(fileServer http.Handler) http.HandlerFunc {
 			w.Header().Set("Content-Type", "application/javascript; charset=utf-8")
 		case ".json":
 			w.Header().Set("Content-Type", "application/json; charset=utf-8")
+		case ".md":
+			w.Header().Set("Content-Type", "text/markdown; charset=utf-8")
 		}
 
 		// Serve the file
 		fileServer.ServeHTTP(w, r)
 	}
+}
+
+// getFromCache returns cached content if available and not expired
+func (s *Server) getFromCache(key string) ([]byte, bool) {
+	s.cacheMu.RLock()
+	defer s.cacheMu.RUnlock()
+
+	entry, ok := s.cache[key]
+	if !ok {
+		return nil, false
+	}
+
+	if time.Since(entry.timestamp) > s.cacheTTL {
+		return nil, false
+	}
+
+	return entry.content, true
+}
+
+// setInCache stores content in the cache
+func (s *Server) setInCache(key string, content []byte) {
+	s.cacheMu.Lock()
+	defer s.cacheMu.Unlock()
+
+	s.cache[key] = &cacheEntry{
+		content:   content,
+		timestamp: time.Now(),
+	}
+}
+
+// renderMainIndex renders the main index page dynamically
+func (s *Server) renderMainIndex(w http.ResponseWriter, r *http.Request) {
+	cacheKey := "index"
+
+	// Check cache first
+	if content, ok := s.getFromCache(cacheKey); ok {
+		w.Header().Set("Content-Type", "text/html; charset=utf-8")
+		w.Write(content)
+		return
+	}
+
+	data := struct {
+		Projects []Project
+	}{
+		Projects: s.projects,
+	}
+
+	// Render to buffer for caching
+	var buf bytes.Buffer
+	if err := s.indexTmpl.Execute(&buf, data); err != nil {
+		http.Error(w, "Template error", http.StatusInternalServerError)
+		fmt.Fprintf(os.Stderr, "Index template error: %v\n", err)
+		return
+	}
+
+	content := buf.Bytes()
+	s.setInCache(cacheKey, content)
+
+	w.Header().Set("Content-Type", "text/html; charset=utf-8")
+	w.Write(content)
+}
+
+// renderProjectIndex renders a project index page dynamically
+func (s *Server) renderProjectIndex(w http.ResponseWriter, r *http.Request, projectSlug string) {
+	cacheKey := "project:" + projectSlug
+
+	// Check cache first
+	if content, ok := s.getFromCache(cacheKey); ok {
+		w.Header().Set("Content-Type", "text/html; charset=utf-8")
+		w.Write(content)
+		return
+	}
+
+	// Find the project
+	var project *Project
+	for i := range s.projects {
+		if ProjectSlug(s.projects[i].Path) == projectSlug {
+			project = &s.projects[i]
+			break
+		}
+	}
+
+	if project == nil {
+		http.NotFound(w, r)
+		return
+	}
+
+	data := struct {
+		Project     *Project
+		AllProjects []Project
+	}{
+		Project:     project,
+		AllProjects: s.projects,
+	}
+
+	// Render to buffer for caching
+	var buf bytes.Buffer
+	if err := s.projectTmpl.Execute(&buf, data); err != nil {
+		http.Error(w, "Template error", http.StatusInternalServerError)
+		fmt.Fprintf(os.Stderr, "Project template error: %v\n", err)
+		return
+	}
+
+	content := buf.Bytes()
+	s.setInCache(cacheKey, content)
+
+	w.Header().Set("Content-Type", "text/html; charset=utf-8")
+	w.Write(content)
+}
+
+// renderSessionShell renders a session HTML shell dynamically
+func (s *Server) renderSessionShell(w http.ResponseWriter, r *http.Request, projectSlug, sessionID string) {
+	cacheKey := "session:" + projectSlug + "/" + sessionID
+
+	// Check cache first
+	if content, ok := s.getFromCache(cacheKey); ok {
+		w.Header().Set("Content-Type", "text/html; charset=utf-8")
+		w.Write(content)
+		return
+	}
+
+	// Find the project and session
+	var project *Project
+	var session *Session
+
+	for i := range s.projects {
+		if ProjectSlug(s.projects[i].Path) == projectSlug {
+			project = &s.projects[i]
+			for j := range project.Sessions {
+				if project.Sessions[j].ID == sessionID {
+					session = &project.Sessions[j]
+					break
+				}
+			}
+			break
+		}
+	}
+
+	if project == nil || session == nil {
+		http.NotFound(w, r)
+		return
+	}
+
+	data := struct {
+		Session     *Session
+		Project     *Project
+		AllProjects []Project
+	}{
+		Session:     session,
+		Project:     project,
+		AllProjects: s.projects,
+	}
+
+	// Render to buffer for caching
+	var buf bytes.Buffer
+	if err := s.shellTmpl.Execute(&buf, data); err != nil {
+		http.Error(w, "Template error", http.StatusInternalServerError)
+		fmt.Fprintf(os.Stderr, "Shell template error: %v\n", err)
+		return
+	}
+
+	content := buf.Bytes()
+	s.setInCache(cacheKey, content)
+
+	w.Header().Set("Content-Type", "text/html; charset=utf-8")
+	w.Write(content)
 }
 
 // handleSearch handles POST /api/search requests
@@ -233,6 +462,9 @@ func corsMiddleware(next http.Handler) http.Handler {
 
 // StartServer is a convenience function to start a server
 func StartServer(port int, outputDir string, projects []Project) error {
-	server := NewServer(port, outputDir, projects)
+	server, err := NewServer(port, outputDir, projects)
+	if err != nil {
+		return fmt.Errorf("creating server: %w", err)
+	}
 	return server.Start()
 }

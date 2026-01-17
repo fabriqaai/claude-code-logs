@@ -29,7 +29,7 @@ func TestMarkdownGeneratorShouldRegenerate(t *testing.T) {
 		t.Fatalf("Failed to set mtime: %v", err)
 	}
 
-	gen, err := NewMarkdownGenerator(tmpDir, tmpDir, false, nil)
+	gen, err := NewMarkdownGenerator(tmpDir, tmpDir, false, false, nil)
 	if err != nil {
 		t.Fatalf("NewMarkdownGenerator failed: %v", err)
 	}
@@ -50,7 +50,7 @@ func TestMarkdownGeneratorShouldRegenerate(t *testing.T) {
 	}
 
 	// Force mode - should always regenerate
-	genForce, err := NewMarkdownGenerator(tmpDir, tmpDir, true, nil)
+	genForce, err := NewMarkdownGenerator(tmpDir, tmpDir, true, false, nil)
 	if err != nil {
 		t.Fatalf("NewMarkdownGenerator failed: %v", err)
 	}
@@ -69,7 +69,7 @@ func TestMarkdownGeneratorShouldRegenerateNonExistent(t *testing.T) {
 
 	mdPath := filepath.Join(tmpDir, "nonexistent.md")
 
-	gen, err := NewMarkdownGenerator(tmpDir, tmpDir, false, nil)
+	gen, err := NewMarkdownGenerator(tmpDir, tmpDir, false, false, nil)
 	if err != nil {
 		t.Fatalf("NewMarkdownGenerator failed: %v", err)
 	}
@@ -131,7 +131,7 @@ func TestMarkdownGeneratorGenerateSession(t *testing.T) {
 		Sessions:   []Session{*session},
 	}
 
-	gen, err := NewMarkdownGenerator(outDir, tmpDir, false, []Project{*project})
+	gen, err := NewMarkdownGenerator(outDir, tmpDir, false, false, nil)
 	if err != nil {
 		t.Fatalf("NewMarkdownGenerator failed: %v", err)
 	}
@@ -193,7 +193,7 @@ func TestMarkdownGeneratorGenerateMainIndex(t *testing.T) {
 		},
 	}
 
-	gen, err := NewMarkdownGenerator(tmpDir, tmpDir, false, projects)
+	gen, err := NewMarkdownGenerator(tmpDir, tmpDir, false, false, nil)
 	if err != nil {
 		t.Fatalf("NewMarkdownGenerator failed: %v", err)
 	}
@@ -253,7 +253,7 @@ func TestMarkdownGeneratorGenerateProjectIndex(t *testing.T) {
 		t.Fatalf("Failed to create project dir: %v", err)
 	}
 
-	gen, err := NewMarkdownGenerator(tmpDir, tmpDir, false, []Project{*project})
+	gen, err := NewMarkdownGenerator(tmpDir, tmpDir, false, false, nil)
 	if err != nil {
 		t.Fatalf("NewMarkdownGenerator failed: %v", err)
 	}
@@ -382,7 +382,7 @@ func TestToolCallFormatting(t *testing.T) {
 		Sessions:   []Session{*session},
 	}
 
-	gen, err := NewMarkdownGenerator(outDir, tmpDir, false, []Project{*project})
+	gen, err := NewMarkdownGenerator(outDir, tmpDir, false, false, nil)
 	if err != nil {
 		t.Fatalf("NewMarkdownGenerator failed: %v", err)
 	}

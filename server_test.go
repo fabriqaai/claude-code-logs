@@ -6,7 +6,6 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"os"
-	"path/filepath"
 	"testing"
 	"time"
 )
@@ -16,7 +15,10 @@ func TestNewServer(t *testing.T) {
 		{Path: "/test", FolderName: "-test", Sessions: []Session{}},
 	}
 
-	server := NewServer(8080, "/tmp/output", projects)
+	server, err := NewServer(8080, "/tmp/output", projects)
+	if err != nil {
+		t.Fatalf("NewServer failed: %v", err)
+	}
 
 	if server.port != 8080 {
 		t.Errorf("port = %d, want 8080", server.port)
@@ -56,7 +58,10 @@ func TestHandleSearch_ValidRequest(t *testing.T) {
 		},
 	}
 
-	server := NewServer(8080, "/tmp", projects)
+	server, err := NewServer(8080, "/tmp", projects)
+	if err != nil {
+		t.Fatalf("NewServer failed: %v", err)
+	}
 
 	// Create request
 	reqBody := SearchRequest{Query: "hello"}
@@ -90,7 +95,10 @@ func TestHandleSearch_ValidRequest(t *testing.T) {
 
 func TestHandleSearch_EmptyQuery(t *testing.T) {
 	projects := []Project{}
-	server := NewServer(8080, "/tmp", projects)
+	server, err := NewServer(8080, "/tmp", projects)
+	if err != nil {
+		t.Fatalf("NewServer failed: %v", err)
+	}
 
 	reqBody := SearchRequest{Query: ""}
 	body, _ := json.Marshal(reqBody)
@@ -114,7 +122,10 @@ func TestHandleSearch_EmptyQuery(t *testing.T) {
 
 func TestHandleSearch_InvalidMethod(t *testing.T) {
 	projects := []Project{}
-	server := NewServer(8080, "/tmp", projects)
+	server, err := NewServer(8080, "/tmp", projects)
+	if err != nil {
+		t.Fatalf("NewServer failed: %v", err)
+	}
 
 	req := httptest.NewRequest(http.MethodGet, "/api/search", nil)
 	rr := httptest.NewRecorder()
@@ -127,7 +138,10 @@ func TestHandleSearch_InvalidMethod(t *testing.T) {
 
 func TestHandleSearch_InvalidJSON(t *testing.T) {
 	projects := []Project{}
-	server := NewServer(8080, "/tmp", projects)
+	server, err := NewServer(8080, "/tmp", projects)
+	if err != nil {
+		t.Fatalf("NewServer failed: %v", err)
+	}
 
 	req := httptest.NewRequest(http.MethodPost, "/api/search", bytes.NewReader([]byte("not json")))
 	req.Header.Set("Content-Type", "application/json")
@@ -173,7 +187,10 @@ func TestHandleSearch_WithFilters(t *testing.T) {
 		},
 	}
 
-	server := NewServer(8080, "/tmp", projects)
+	server, err := NewServer(8080, "/tmp", projects)
+	if err != nil {
+		t.Fatalf("NewServer failed: %v", err)
+	}
 
 	// Search with project filter
 	reqBody := SearchRequest{Query: "hello", Project: "/Users/test/project1"}
@@ -198,7 +215,10 @@ func TestHandleSearch_WithFilters(t *testing.T) {
 
 func TestHandleSearch_LongQuery(t *testing.T) {
 	projects := []Project{}
-	server := NewServer(8080, "/tmp", projects)
+	server, err := NewServer(8080, "/tmp", projects)
+	if err != nil {
+		t.Fatalf("NewServer failed: %v", err)
+	}
 
 	// Create very long query
 	longQuery := ""
@@ -239,7 +259,10 @@ func TestHandleStats(t *testing.T) {
 		},
 	}
 
-	server := NewServer(8080, "/tmp", projects)
+	server, err := NewServer(8080, "/tmp", projects)
+	if err != nil {
+		t.Fatalf("NewServer failed: %v", err)
+	}
 
 	req := httptest.NewRequest(http.MethodGet, "/api/stats", nil)
 	rr := httptest.NewRecorder()
@@ -265,7 +288,10 @@ func TestHandleStats(t *testing.T) {
 
 func TestHandleStats_InvalidMethod(t *testing.T) {
 	projects := []Project{}
-	server := NewServer(8080, "/tmp", projects)
+	server, err := NewServer(8080, "/tmp", projects)
+	if err != nil {
+		t.Fatalf("NewServer failed: %v", err)
+	}
 
 	req := httptest.NewRequest(http.MethodPost, "/api/stats", nil)
 	rr := httptest.NewRecorder()
@@ -284,19 +310,16 @@ func TestHandleStatic(t *testing.T) {
 	}
 	defer os.RemoveAll(tmpDir)
 
-	// Create index.html
-	indexContent := "<!DOCTYPE html><html><body>Test</body></html>"
-	if err := os.WriteFile(filepath.Join(tmpDir, "index.html"), []byte(indexContent), 0644); err != nil {
-		t.Fatalf("Failed to write index.html: %v", err)
-	}
-
 	projects := []Project{}
-	server := NewServer(8080, tmpDir, projects)
+	server, err := NewServer(8080, tmpDir, projects)
+	if err != nil {
+		t.Fatalf("NewServer failed: %v", err)
+	}
 
 	fileServer := http.FileServer(http.Dir(tmpDir))
 	handler := server.handleStatic(fileServer)
 
-	// Test root path
+	// Test root path - should render dynamic main index
 	req := httptest.NewRequest(http.MethodGet, "/", nil)
 	rr := httptest.NewRecorder()
 	handler(rr, req)
@@ -305,8 +328,9 @@ func TestHandleStatic(t *testing.T) {
 		t.Errorf("GET / should return OK, got %v", rr.Code)
 	}
 
-	if !bytes.Contains(rr.Body.Bytes(), []byte("Test")) {
-		t.Error("Response should contain index.html content")
+	// Root path now renders dynamic HTML with the index template
+	if !bytes.Contains(rr.Body.Bytes(), []byte("Claude Code Logs")) {
+		t.Error("Response should contain dynamically rendered index content")
 	}
 }
 
@@ -318,7 +342,10 @@ func TestHandleStatic_NotFound(t *testing.T) {
 	defer os.RemoveAll(tmpDir)
 
 	projects := []Project{}
-	server := NewServer(8080, tmpDir, projects)
+	server, err := NewServer(8080, tmpDir, projects)
+	if err != nil {
+		t.Fatalf("NewServer failed: %v", err)
+	}
 
 	fileServer := http.FileServer(http.Dir(tmpDir))
 	handler := server.handleStatic(fileServer)
@@ -340,7 +367,10 @@ func TestHandleStatic_InvalidMethod(t *testing.T) {
 	defer os.RemoveAll(tmpDir)
 
 	projects := []Project{}
-	server := NewServer(8080, tmpDir, projects)
+	server, err := NewServer(8080, tmpDir, projects)
+	if err != nil {
+		t.Fatalf("NewServer failed: %v", err)
+	}
 
 	fileServer := http.FileServer(http.Dir(tmpDir))
 	handler := server.handleStatic(fileServer)
@@ -403,7 +433,10 @@ func TestSearchResponseFormat(t *testing.T) {
 		},
 	}
 
-	server := NewServer(8080, "/tmp", projects)
+	server, err := NewServer(8080, "/tmp", projects)
+	if err != nil {
+		t.Fatalf("NewServer failed: %v", err)
+	}
 
 	reqBody := SearchRequest{Query: "help"}
 	body, _ := json.Marshal(reqBody)
