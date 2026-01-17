@@ -29,10 +29,7 @@ func TestMarkdownGeneratorShouldRegenerate(t *testing.T) {
 		t.Fatalf("Failed to set mtime: %v", err)
 	}
 
-	gen, err := NewMarkdownGenerator(tmpDir, tmpDir, false, false, nil)
-	if err != nil {
-		t.Fatalf("NewMarkdownGenerator failed: %v", err)
-	}
+	gen := NewMarkdownGenerator(tmpDir, tmpDir, false)
 
 	// MD is older than JSONL - should regenerate
 	if !gen.ShouldRegenerate(jsonlPath, mdPath) {
@@ -50,10 +47,7 @@ func TestMarkdownGeneratorShouldRegenerate(t *testing.T) {
 	}
 
 	// Force mode - should always regenerate
-	genForce, err := NewMarkdownGenerator(tmpDir, tmpDir, true, false, nil)
-	if err != nil {
-		t.Fatalf("NewMarkdownGenerator failed: %v", err)
-	}
+	genForce := NewMarkdownGenerator(tmpDir, tmpDir, true)
 	if !genForce.ShouldRegenerate(jsonlPath, mdPath) {
 		t.Error("Expected ShouldRegenerate=true in force mode")
 	}
@@ -69,10 +63,7 @@ func TestMarkdownGeneratorShouldRegenerateNonExistent(t *testing.T) {
 
 	mdPath := filepath.Join(tmpDir, "nonexistent.md")
 
-	gen, err := NewMarkdownGenerator(tmpDir, tmpDir, false, false, nil)
-	if err != nil {
-		t.Fatalf("NewMarkdownGenerator failed: %v", err)
-	}
+	gen := NewMarkdownGenerator(tmpDir, tmpDir, false)
 
 	// MD doesn't exist - should regenerate
 	if !gen.ShouldRegenerate(jsonlPath, mdPath) {
@@ -125,18 +116,9 @@ func TestMarkdownGeneratorGenerateSession(t *testing.T) {
 		t.Fatalf("Failed to create project dir: %v", err)
 	}
 
-	project := &Project{
-		Path:       "/Users/test/project",
-		FolderName: "test-project",
-		Sessions:   []Session{*session},
-	}
+	gen := NewMarkdownGenerator(outDir, tmpDir, false)
 
-	gen, err := NewMarkdownGenerator(outDir, tmpDir, false, false, nil)
-	if err != nil {
-		t.Fatalf("NewMarkdownGenerator failed: %v", err)
-	}
-
-	if err := gen.GenerateSession(session, project, projectSlug); err != nil {
+	if err := gen.GenerateSession(session, projectSlug); err != nil {
 		t.Fatalf("GenerateSession failed: %v", err)
 	}
 
@@ -193,10 +175,7 @@ func TestMarkdownGeneratorGenerateMainIndex(t *testing.T) {
 		},
 	}
 
-	gen, err := NewMarkdownGenerator(tmpDir, tmpDir, false, false, nil)
-	if err != nil {
-		t.Fatalf("NewMarkdownGenerator failed: %v", err)
-	}
+	gen := NewMarkdownGenerator(tmpDir, tmpDir, false)
 
 	if err := gen.GenerateMainIndex(projects); err != nil {
 		t.Fatalf("GenerateMainIndex failed: %v", err)
@@ -253,10 +232,7 @@ func TestMarkdownGeneratorGenerateProjectIndex(t *testing.T) {
 		t.Fatalf("Failed to create project dir: %v", err)
 	}
 
-	gen, err := NewMarkdownGenerator(tmpDir, tmpDir, false, false, nil)
-	if err != nil {
-		t.Fatalf("NewMarkdownGenerator failed: %v", err)
-	}
+	gen := NewMarkdownGenerator(tmpDir, tmpDir, false)
 
 	if err := gen.GenerateProjectIndex(project, projectSlug); err != nil {
 		t.Fatalf("GenerateProjectIndex failed: %v", err)
@@ -376,18 +352,9 @@ func TestToolCallFormatting(t *testing.T) {
 		t.Fatalf("Failed to create project dir: %v", err)
 	}
 
-	project := &Project{
-		Path:       "/Users/test/project",
-		FolderName: "test-project",
-		Sessions:   []Session{*session},
-	}
+	gen := NewMarkdownGenerator(outDir, tmpDir, false)
 
-	gen, err := NewMarkdownGenerator(outDir, tmpDir, false, false, nil)
-	if err != nil {
-		t.Fatalf("NewMarkdownGenerator failed: %v", err)
-	}
-
-	if err := gen.GenerateSession(session, project, projectSlug); err != nil {
+	if err := gen.GenerateSession(session, projectSlug); err != nil {
 		t.Fatalf("GenerateSession failed: %v", err)
 	}
 
