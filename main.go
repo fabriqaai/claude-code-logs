@@ -22,12 +22,21 @@ var (
 )
 
 // rootCmd is the base command for the CLI
+// When no subcommand is specified, it defaults to 'serve'
 var rootCmd = &cobra.Command{
 	Use:   "claude-code-logs",
 	Short: "Browse and search Claude Code chat logs",
 	Long: `claude-code-logs generates HTML pages from Claude Code chat logs and serves them locally.
 
-It scans ~/.claude/projects for chat sessions and creates a searchable web interface.`,
+It scans ~/.claude/projects for chat sessions and creates a searchable web interface.
+
+When no subcommand is specified, it defaults to 'serve'.
+
+Example:
+  claude-code-logs                    (same as 'serve')
+  claude-code-logs --list --watch     (same as 'serve --list --watch')
+  claude-code-logs serve --port 3000`,
+	RunE: runServe, // Default to serve command
 }
 
 // Legacy commands that show migration messages
@@ -53,6 +62,9 @@ func init() {
 	// Global flags available to all commands
 	rootCmd.PersistentFlags().StringVarP(&dirFlag, "dir", "d", "", "Output directory for HTML (default: ~/claude-code-logs)")
 	rootCmd.PersistentFlags().BoolVarP(&verbose, "verbose", "v", false, "Verbose output")
+
+	// Add serve flags to root command (for default behavior)
+	RegisterServeFlags(rootCmd)
 
 	// Add subcommands
 	rootCmd.AddCommand(serveCmd)

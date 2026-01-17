@@ -43,9 +43,17 @@ Example:
 }
 
 func init() {
+	// Add flags to serve subcommand
 	serveCmd.Flags().IntVarP(&servePort, "port", "p", 8080, "Server port")
 	serveCmd.Flags().BoolVarP(&serveWatch, "watch", "w", false, "Enable watch mode (regenerate on changes)")
 	serveCmd.Flags().BoolVarP(&serveList, "list", "l", false, "Interactively select projects to serve")
+}
+
+// RegisterServeFlags adds serve flags to a command (used for root command default)
+func RegisterServeFlags(cmd *cobra.Command) {
+	cmd.Flags().IntVarP(&servePort, "port", "p", 8080, "Server port")
+	cmd.Flags().BoolVarP(&serveWatch, "watch", "w", false, "Enable watch mode (regenerate on changes)")
+	cmd.Flags().BoolVarP(&serveList, "list", "l", false, "Interactively select projects to serve")
 }
 
 func runServe(cmd *cobra.Command, args []string) error {
