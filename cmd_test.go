@@ -6,6 +6,7 @@ import (
 	"path/filepath"
 	"strings"
 	"testing"
+	"time"
 )
 
 func TestExpandPath(t *testing.T) {
@@ -263,5 +264,118 @@ func TestServePortValidation(t *testing.T) {
 				}
 			}
 		})
+	}
+}
+
+func TestFormatRelativeTime(t *testing.T) {
+	now := time.Now()
+
+	tests := []struct {
+		name     string
+		time     time.Time
+		expected string
+	}{
+		{
+			name:     "just now (seconds ago)",
+			time:     now.Add(-30 * time.Second),
+			expected: "just now",
+		},
+		{
+			name:     "1 minute ago",
+			time:     now.Add(-1 * time.Minute),
+			expected: "1 min ago",
+		},
+		{
+			name:     "multiple minutes ago",
+			time:     now.Add(-15 * time.Minute),
+			expected: "15 mins ago",
+		},
+		{
+			name:     "1 hour ago",
+			time:     now.Add(-1 * time.Hour),
+			expected: "1 hour ago",
+		},
+		{
+			name:     "multiple hours ago",
+			time:     now.Add(-5 * time.Hour),
+			expected: "5 hours ago",
+		},
+		{
+			name:     "1 day ago",
+			time:     now.Add(-24 * time.Hour),
+			expected: "1 day ago",
+		},
+		{
+			name:     "multiple days ago",
+			time:     now.Add(-3 * 24 * time.Hour),
+			expected: "3 days ago",
+		},
+		{
+			name:     "1 week ago",
+			time:     now.Add(-7 * 24 * time.Hour),
+			expected: "1 week ago",
+		},
+		{
+			name:     "multiple weeks ago",
+			time:     now.Add(-21 * 24 * time.Hour),
+			expected: "3 weeks ago",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			result := formatRelativeTime(tt.time)
+			if result != tt.expected {
+				t.Errorf("formatRelativeTime() = %q, want %q", result, tt.expected)
+			}
+		})
+	}
+}
+
+func TestFormatRelativeTimeBoundaries(t *testing.T) {
+	now := time.Now()
+
+	// Test boundary between "just now" and "1 min ago"
+	almostMinute := now.Add(-59 * time.Second)
+	if result := formatRelativeTime(almostMinute); result != "just now" {
+		t.Errorf("59 seconds should be 'just now', got %q", result)
+	}
+
+	exactMinute := now.Add(-60 * time.Second)
+	if result := formatRelativeTime(exactMinute); result != "1 min ago" {
+		t.Errorf("60 seconds should be '1 min ago', got %q", result)
+	}
+
+	// Test boundary between minutes and hours
+	almostHour := now.Add(-59 * time.Minute)
+	if result := formatRelativeTime(almostHour); result != "59 mins ago" {
+		t.Errorf("59 minutes should be '59 mins ago', got %q", result)
+	}
+
+	exactHour := now.Add(-60 * time.Minute)
+	if result := formatRelativeTime(exactHour); result != "1 hour ago" {
+		t.Errorf("60 minutes should be '1 hour ago', got %q", result)
+	}
+
+	// Test boundary between hours and days
+	almostDay := now.Add(-23 * time.Hour)
+	if result := formatRelativeTime(almostDay); result != "23 hours ago" {
+		t.Errorf("23 hours should be '23 hours ago', got %q", result)
+	}
+
+	exactDay := now.Add(-24 * time.Hour)
+	if result := formatRelativeTime(exactDay); result != "1 day ago" {
+		t.Errorf("24 hours should be '1 day ago', got %q", result)
+	}
+
+	// Test boundary between days and weeks
+	almostWeek := now.Add(-6 * 24 * time.Hour)
+	if result := formatRelativeTime(almostWeek); result != "6 days ago" {
+		t.Errorf("6 days should be '6 days ago', got %q", result)
+	}
+
+	exactWeek := now.Add(-7 * 24 * time.Hour)
+	if result := formatRelativeTime(exactWeek); result != "1 week ago" {
+		t.Errorf("7 days should be '1 week ago', got %q", result)
 	}
 }
