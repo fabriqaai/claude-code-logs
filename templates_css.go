@@ -138,6 +138,39 @@ body {
     letter-spacing: 0.02em;
 }
 
+.stats-nav-link {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 16px;
+    padding: 10px 12px;
+    border-radius: 8px;
+    text-decoration: none;
+    color: var(--text-secondary);
+    font-size: 0.875rem;
+    font-weight: 500;
+    transition: all var(--transition-fast);
+    border: 1px solid var(--border-subtle);
+}
+
+.stats-nav-link:hover {
+    background-color: var(--bg-tertiary);
+    color: var(--text-primary);
+    border-color: var(--border-medium);
+}
+
+.stats-nav-link.active {
+    background-color: var(--accent-subtle);
+    color: var(--accent-primary);
+    border-color: var(--accent-primary);
+}
+
+.stats-nav-link svg {
+    width: 16px;
+    height: 16px;
+    flex-shrink: 0;
+}
+
 .project-list {
     list-style: none;
     flex: 1;

@@ -25,6 +25,10 @@ const projectIndexTemplate = `<!DOCTYPE html>
                     Claude Code Logs
                 </a>
                 <div class="sidebar-subtitle">{{len .AllProjects}} projects</div>
+                <a href="../stats.html" class="stats-nav-link">
+                    <svg viewBox="0 0 20 20" fill="currentColor"><path d="M2 11a1 1 0 011-1h2a1 1 0 011 1v5a1 1 0 01-1 1H3a1 1 0 01-1-1v-5zm6-4a1 1 0 011-1h2a1 1 0 011 1v9a1 1 0 01-1 1H9a1 1 0 01-1-1V7zm6-3a1 1 0 011-1h2a1 1 0 011 1v12a1 1 0 01-1 1h-2a1 1 0 01-1-1V4z"/></svg>
+                    Stats
+                </a>
             </div>
             <div class="search-container">
                 <div class="search-input-wrapper">

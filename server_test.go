@@ -248,8 +248,10 @@ func TestHandleStats(t *testing.T) {
 			FolderName: "-Users-test-project1",
 			Sessions: []Session{
 				{
-					ID:      "session-1",
-					Summary: "Test",
+					ID:        "session-1",
+					Summary:   "Test",
+					CreatedAt: now.Add(-time.Hour),
+					UpdatedAt: now,
 					Messages: []Message{
 						{UUID: "msg-1", Role: "user", Timestamp: now,
 							Content: []ContentBlock{{Type: "text", Text: "Hello"}}},
@@ -272,17 +274,29 @@ func TestHandleStats(t *testing.T) {
 		t.Errorf("Stats should return OK, got %v", rr.Code)
 	}
 
-	var stats map[string]interface{}
+	var stats StatsData
 	if err := json.Unmarshal(rr.Body.Bytes(), &stats); err != nil {
 		t.Fatalf("Failed to parse stats: %v", err)
 	}
 
-	if stats["projects"].(float64) != 1 {
-		t.Errorf("Stats projects = %v, want 1", stats["projects"])
+	if stats.TotalProjects != 1 {
+		t.Errorf("Stats TotalProjects = %v, want 1", stats.TotalProjects)
 	}
 
-	if stats["messages"].(float64) != 1 {
-		t.Errorf("Stats messages = %v, want 1", stats["messages"])
+	if stats.TotalMessages != 1 {
+		t.Errorf("Stats TotalMessages = %v, want 1", stats.TotalMessages)
+	}
+
+	if stats.TotalSessions != 1 {
+		t.Errorf("Stats TotalSessions = %v, want 1", stats.TotalSessions)
+	}
+
+	if len(stats.MessagesPerDay) == 0 {
+		t.Error("Stats should include MessagesPerDay time series")
+	}
+
+	if len(stats.ProjectStats) != 1 {
+		t.Errorf("Stats should have 1 project stat, got %d", len(stats.ProjectStats))
 	}
 }
 

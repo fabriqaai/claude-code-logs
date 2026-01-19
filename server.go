@@ -33,10 +33,13 @@ type Server struct {
 	shellTmpl    *template.Template
 	indexTmpl    *template.Template
 	projectTmpl  *template.Template
+	statsTmpl    *template.Template
 	// Cache for rendered HTML pages
 	cache      map[string]*cacheEntry
 	cacheMu    sync.RWMutex
 	cacheTTL   time.Duration
+	// Precomputed stats for the stats API
+	stats      *StatsData
 }
 
 // NewServer creates a new server instance
@@ -60,6 +63,11 @@ func NewServer(port int, outputDir string, projects []Project) (*Server, error) 
 		return nil, fmt.Errorf("parsing project template: %w", err)
 	}
 
+	statsTmpl, err := template.New("stats").Funcs(funcMap).Parse(statsTemplate)
+	if err != nil {
+		return nil, fmt.Errorf("parsing stats template: %w", err)
+	}
+
 	return &Server{
 		port:        port,
 		outputDir:   outputDir,
@@ -68,8 +76,10 @@ func NewServer(port int, outputDir string, projects []Project) (*Server, error) 
 		shellTmpl:   shellTmpl,
 		indexTmpl:   indexTmpl,
 		projectTmpl: projectTmpl,
+		statsTmpl:   statsTmpl,
 		cache:       make(map[string]*cacheEntry),
 		cacheTTL:    30 * time.Second, // Cache HTML for 30 seconds
+		stats:       ComputeStats(projects),
 	}, nil
 }
 
@@ -168,6 +178,12 @@ func (s *Server) handleStatic(fileServer http.Handler) http.HandlerFunc {
 		// Handle root - render main index
 		if path == "/" || path == "" || path == "/index.html" {
 			s.renderMainIndex(w, r)
+			return
+		}
+
+		// Handle stats page
+		if path == "/stats" || path == "/stats.html" {
+			s.renderStatsPage(w, r)
 			return
 		}
 
@@ -417,6 +433,38 @@ func (s *Server) renderSessionShell(w http.ResponseWriter, r *http.Request, proj
 	w.Write(content)
 }
 
+// renderStatsPage renders the stats dashboard page
+func (s *Server) renderStatsPage(w http.ResponseWriter, r *http.Request) {
+	cacheKey := "stats"
+
+	// Check cache first
+	if content, ok := s.getFromCache(cacheKey); ok {
+		w.Header().Set("Content-Type", "text/html; charset=utf-8")
+		w.Write(content)
+		return
+	}
+
+	data := struct {
+		Projects []Project
+	}{
+		Projects: s.projects,
+	}
+
+	// Render to buffer for caching
+	var buf bytes.Buffer
+	if err := s.statsTmpl.Execute(&buf, data); err != nil {
+		http.Error(w, "Template error", http.StatusInternalServerError)
+		fmt.Fprintf(os.Stderr, "Stats template error: %v\n", err)
+		return
+	}
+
+	content := buf.Bytes()
+	s.setInCache(cacheKey, content)
+
+	w.Header().Set("Content-Type", "text/html; charset=utf-8")
+	w.Write(content)
+}
+
 // handleSearch handles POST /api/search requests
 func (s *Server) handleSearch(w http.ResponseWriter, r *http.Request) {
 	// Only allow POST
@@ -466,17 +514,18 @@ func (s *Server) handleSearch(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-// handleStats returns index statistics
+// handleStats returns full analytics data for the stats dashboard
 func (s *Server) handleStats(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodGet {
 		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
 		return
 	}
 
-	stats := map[string]interface{}{
-		"projects": len(s.projects),
-		"messages": s.index.MessageCount(),
-		"terms":    s.index.TermCount(),
+	// Check for time range filter
+	rangeType := r.URL.Query().Get("range")
+	stats := s.stats
+	if rangeType != "" && rangeType != "all" {
+		stats = FilterStatsByTimeRange(s.stats, rangeType)
 	}
 
 	w.Header().Set("Content-Type", "application/json")
