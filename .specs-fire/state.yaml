@@ -1,0 +1,26 @@
+project:
+  name: claude-code-logs
+  framework: fire-v1
+
+workspace:
+  type: brownfield
+  structure: monolith
+  default_mode: confirm
+
+intents:
+  - id: session-stats-dashboard
+    title: Session Stats Dashboard
+    status: completed
+    work_items:
+      - id: 01-stats-data-model
+        status: completed
+      - id: 02-stats-api-endpoint
+        status: completed
+      - id: 03-stats-page-charts
+        status: completed
+      - id: 04-time-range-filtering
+        status: completed
+      - id: 05-navigation-integration
+        status: completed
+
+active_run: null
