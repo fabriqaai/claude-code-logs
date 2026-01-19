@@ -23,4 +23,19 @@ intents:
       - id: 05-navigation-integration
         status: completed
 
+  - id: dedicated-search-page
+    title: Dedicated Search Page
+    status: in_progress
+    work_items:
+      - id: 01-search-api-pagination
+        status: pending
+      - id: 02-relevance-scoring
+        status: pending
+      - id: 03-search-page-template
+        status: pending
+      - id: 04-search-page-route
+        status: pending
+      - id: 05-remove-overlay-update-shortcuts
+        status: pending
+
 active_run: null
