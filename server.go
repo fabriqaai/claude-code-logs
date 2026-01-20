@@ -485,7 +485,7 @@ func (s *Server) renderSearchPage(w http.ResponseWriter, r *http.Request) {
 	// Check cache first
 	if content, ok := s.getFromCache(cacheKey); ok {
 		w.Header().Set("Content-Type", "text/html; charset=utf-8")
-		w.Write(content)
+		_, _ = w.Write(content) // Error ignored: client may have disconnected
 		return
 	}
 
@@ -507,7 +507,7 @@ func (s *Server) renderSearchPage(w http.ResponseWriter, r *http.Request) {
 	s.setInCache(cacheKey, content)
 
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
-	w.Write(content)
+	_, _ = w.Write(content) // Error ignored: client may have disconnected
 }
 
 // handleSearch handles POST /api/search requests
