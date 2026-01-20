@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"strings"
 	"testing"
 	"time"
@@ -664,5 +665,274 @@ func TestSearchIndex_SkipsToolBlocks(t *testing.T) {
 	results = idx.Search("secret", "", "")
 	if len(results) != 0 {
 		t.Error("Should NOT find 'secret' from tool input (tool blocks not indexed)")
+	}
+}
+
+func TestSearchWithOptions_Pagination(t *testing.T) {
+	now := time.Now()
+	// Create multiple sessions to test pagination
+	sessions := make([]Session, 25)
+	for i := 0; i < 25; i++ {
+		sessions[i] = Session{
+			ID:      fmt.Sprintf("session-%d", i),
+			Summary: fmt.Sprintf("Session %d", i),
+			Messages: []Message{
+				{
+					UUID:      fmt.Sprintf("msg-%d", i),
+					Role:      "user",
+					Timestamp: now.Add(time.Duration(i) * time.Hour),
+					Content:   []ContentBlock{{Type: "text", Text: "Hello world test message"}},
+				},
+			},
+		}
+	}
+
+	projects := []Project{
+		{
+			Path:       "/Users/test/project1",
+			FolderName: "-Users-test-project1",
+			Sessions:   sessions,
+		},
+	}
+
+	idx := NewSearchIndex(projects)
+
+	// Test default pagination (limit 20)
+	result := idx.SearchWithOptions("hello", "", "", SearchOptions{})
+	if len(result.Results) != 20 {
+		t.Errorf("Default limit should return 20 results, got %d", len(result.Results))
+	}
+	if result.Total != 25 {
+		t.Errorf("Total should be 25, got %d", result.Total)
+	}
+	if !result.HasMore {
+		t.Error("HasMore should be true when more results exist")
+	}
+
+	// Test with offset
+	result = idx.SearchWithOptions("hello", "", "", SearchOptions{Offset: 20})
+	if len(result.Results) != 5 {
+		t.Errorf("Offset 20 should return 5 results, got %d", len(result.Results))
+	}
+	if result.HasMore {
+		t.Error("HasMore should be false when no more results")
+	}
+	if result.Offset != 20 {
+		t.Errorf("Offset should be 20, got %d", result.Offset)
+	}
+
+	// Test with custom limit
+	result = idx.SearchWithOptions("hello", "", "", SearchOptions{Limit: 10})
+	if len(result.Results) != 10 {
+		t.Errorf("Limit 10 should return 10 results, got %d", len(result.Results))
+	}
+
+	// Test max limit cap at 100
+	result = idx.SearchWithOptions("hello", "", "", SearchOptions{Limit: 200})
+	if len(result.Results) != 25 { // only 25 total results
+		t.Errorf("Max limit should cap at 100, but we only have 25 results, got %d", len(result.Results))
+	}
+}
+
+func TestSearchWithOptions_PaginationDefaults(t *testing.T) {
+	now := time.Now()
+	projects := []Project{
+		{
+			Path:       "/Users/test/project1",
+			FolderName: "-Users-test-project1",
+			Sessions: []Session{
+				{
+					ID:      "session-1",
+					Summary: "Test Session",
+					Messages: []Message{
+						{
+							UUID:      "msg-1",
+							Role:      "user",
+							Timestamp: now,
+							Content:   []ContentBlock{{Type: "text", Text: "Hello world"}},
+						},
+					},
+				},
+			},
+		},
+	}
+
+	idx := NewSearchIndex(projects)
+
+	// Test that defaults are applied (offset=0, limit=20)
+	result := idx.SearchWithOptions("hello", "", "", SearchOptions{})
+	if result.Offset != 0 {
+		t.Errorf("Default offset should be 0, got %d", result.Offset)
+	}
+	// With only 1 result, hasMore should be false
+	if result.HasMore {
+		t.Error("HasMore should be false when fewer results than limit")
+	}
+}
+
+func TestSearchWithOptions_RelevanceScoring(t *testing.T) {
+	now := time.Now()
+	projects := []Project{
+		{
+			Path:       "/Users/test/project1",
+			FolderName: "-Users-test-project1",
+			Sessions: []Session{
+				{
+					ID:      "session-1",
+					Summary: "Low relevance",
+					Messages: []Message{
+						{
+							UUID:      "msg-1",
+							Role:      "user",
+							Timestamp: now.Add(-30 * 24 * time.Hour), // 30 days ago
+							Content:   []ContentBlock{{Type: "text", Text: "hello at the end of a long message that has lots of other content before it finally says hello"}},
+						},
+					},
+				},
+				{
+					ID:      "session-2",
+					Summary: "High relevance",
+					Messages: []Message{
+						{
+							UUID:      "msg-2",
+							Role:      "user",
+							Timestamp: now, // Recent
+							Content:   []ContentBlock{{Type: "text", Text: "hello hello hello world"}}, // Multiple occurrences, early position
+						},
+						{
+							UUID:      "msg-3",
+							Role:      "assistant",
+							Timestamp: now.Add(time.Second),
+							Content:   []ContentBlock{{Type: "text", Text: "hello there friend"}},
+						},
+					},
+				},
+			},
+		},
+	}
+
+	idx := NewSearchIndex(projects)
+
+	// Search with relevance sorting (default)
+	result := idx.SearchWithOptions("hello", "", "", SearchOptions{Sort: "relevance"})
+
+	if len(result.Results) != 2 {
+		t.Fatalf("Expected 2 results, got %d", len(result.Results))
+	}
+
+	// Session-2 should rank higher (more matches, recent, early position)
+	if result.Results[0].SessionID != "session-2" {
+		t.Errorf("Session-2 should rank first due to higher relevance, got %s", result.Results[0].SessionID)
+	}
+
+	// Verify scores are populated and ordered
+	if result.Results[0].Score <= result.Results[1].Score {
+		t.Errorf("First result score (%f) should be higher than second (%f)",
+			result.Results[0].Score, result.Results[1].Score)
+	}
+}
+
+func TestSearchWithOptions_SortByRecent(t *testing.T) {
+	now := time.Now()
+	projects := []Project{
+		{
+			Path:       "/Users/test/project1",
+			FolderName: "-Users-test-project1",
+			Sessions: []Session{
+				{
+					ID:      "session-old",
+					Summary: "Old session",
+					Messages: []Message{
+						{
+							UUID:      "msg-1",
+							Role:      "user",
+							Timestamp: now.Add(-48 * time.Hour), // 2 days ago
+							Content:   []ContentBlock{{Type: "text", Text: "hello hello hello"}}, // More matches
+						},
+					},
+				},
+				{
+					ID:      "session-new",
+					Summary: "New session",
+					Messages: []Message{
+						{
+							UUID:      "msg-2",
+							Role:      "user",
+							Timestamp: now, // Now
+							Content:   []ContentBlock{{Type: "text", Text: "hello"}}, // Fewer matches
+						},
+					},
+				},
+			},
+		},
+	}
+
+	idx := NewSearchIndex(projects)
+
+	// Search with recent sorting
+	result := idx.SearchWithOptions("hello", "", "", SearchOptions{Sort: "recent"})
+
+	if len(result.Results) != 2 {
+		t.Fatalf("Expected 2 results, got %d", len(result.Results))
+	}
+
+	// session-new should be first despite lower relevance
+	if result.Results[0].SessionID != "session-new" {
+		t.Errorf("session-new should rank first with sort=recent, got %s", result.Results[0].SessionID)
+	}
+}
+
+func TestSearchWithOptions_PhraseScoring(t *testing.T) {
+	now := time.Now()
+	projects := []Project{
+		{
+			Path:       "/Users/test/project1",
+			FolderName: "-Users-test-project1",
+			Sessions: []Session{
+				{
+					ID:      "session-1",
+					Summary: "Has phrase",
+					Messages: []Message{
+						{
+							UUID:      "msg-1",
+							Role:      "user",
+							Timestamp: now,
+							Content:   []ContentBlock{{Type: "text", Text: "hello world is a common phrase"}},
+						},
+					},
+				},
+				{
+					ID:      "session-2",
+					Summary: "No phrase",
+					Messages: []Message{
+						{
+							UUID:      "msg-2",
+							Role:      "user",
+							Timestamp: now,
+							Content:   []ContentBlock{{Type: "text", Text: "world hello reversed order"}},
+						},
+					},
+				},
+			},
+		},
+	}
+
+	idx := NewSearchIndex(projects)
+
+	// Search for phrase
+	result := idx.SearchWithOptions(`"hello world"`, "", "", SearchOptions{Sort: "relevance"})
+
+	// Only session-1 should match the exact phrase
+	if len(result.Results) != 1 {
+		t.Fatalf("Expected 1 result for phrase search, got %d", len(result.Results))
+	}
+
+	if result.Results[0].SessionID != "session-1" {
+		t.Errorf("Expected session-1 to match phrase, got %s", result.Results[0].SessionID)
+	}
+
+	// Score should include phrase bonus
+	if result.Results[0].Score < 2.0 {
+		t.Errorf("Phrase match should have score >= 2.0 (phrase bonus), got %f", result.Results[0].Score)
 	}
 }

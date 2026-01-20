@@ -486,26 +486,34 @@ func (s *Server) handleSearch(w http.ResponseWriter, r *http.Request) {
 		req.Query = req.Query[:maxQueryLength]
 	}
 
-	// Execute search
+	// Execute search with options
 	start := time.Now()
-	results := s.index.Search(req.Query, req.Project, req.Session)
+	opts := SearchOptions{
+		Offset: req.Offset,
+		Limit:  req.Limit,
+		Sort:   req.Sort,
+	}
+	searchResult := s.index.SearchWithOptions(req.Query, req.Project, req.Session, opts)
 	duration := time.Since(start)
 
-	// Count total matches
+	// Count total matches across returned results
 	totalMatches := 0
-	for _, result := range results {
+	for _, result := range searchResult.Results {
 		totalMatches += len(result.Matches)
 	}
 
 	// Build response
 	response := SearchResponse{
-		Results: results,
-		Total:   totalMatches,
+		Results: searchResult.Results,
+		Total:   searchResult.Total,
 		Query:   req.Query,
+		HasMore: searchResult.HasMore,
+		Offset:  searchResult.Offset,
 	}
 
 	// Log search (for debugging)
-	fmt.Printf("Search: %q -> %d results in %v\n", req.Query, totalMatches, duration)
+	fmt.Printf("Search: %q -> %d/%d results (offset=%d, limit=%d) in %v\n",
+		req.Query, len(searchResult.Results), searchResult.Total, req.Offset, req.Limit, duration)
 
 	// Send response
 	w.Header().Set("Content-Type", "application/json")

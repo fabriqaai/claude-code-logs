@@ -28,11 +28,11 @@ intents:
     status: in_progress
     work_items:
       - id: 01-search-api-pagination
-        status: pending
+        status: completed
       - id: 02-relevance-scoring
-        status: pending
+        status: completed
       - id: 03-search-page-template
-        status: pending
+        status: completed
       - id: 04-search-page-route
         status: pending
       - id: 05-remove-overlay-update-shortcuts

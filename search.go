@@ -36,6 +36,7 @@ type SearchResult struct {
 	SessionID    string        `json:"sessionId"`
 	SessionTitle string        `json:"sessionTitle"`
 	Matches      []MatchResult `json:"matches"`
+	Score        float64       `json:"score"`
 }
 
 // MatchResult represents a matching message
@@ -51,6 +52,8 @@ type SearchResponse struct {
 	Results []SearchResult `json:"results"`
 	Total   int            `json:"total"`
 	Query   string         `json:"query"`
+	HasMore bool           `json:"hasMore"`
+	Offset  int            `json:"offset"`
 }
 
 // SearchRequest is the API request format
@@ -58,6 +61,9 @@ type SearchRequest struct {
 	Query   string `json:"query"`
 	Project string `json:"project,omitempty"`
 	Session string `json:"session,omitempty"`
+	Offset  int    `json:"offset,omitempty"`
+	Limit   int    `json:"limit,omitempty"`
+	Sort    string `json:"sort,omitempty"`
 }
 
 // NewSearchIndex creates a new search index from projects
@@ -102,16 +108,48 @@ func NewSearchIndex(projects []Project) *SearchIndex {
 	return idx
 }
 
+// SearchOptions contains optional parameters for search
+type SearchOptions struct {
+	Offset int
+	Limit  int
+	Sort   string // "relevance" (default) or "recent"
+}
+
+// SearchResultWithPagination contains search results with pagination metadata
+type SearchResultWithPagination struct {
+	Results []SearchResult
+	Total   int
+	HasMore bool
+	Offset  int
+}
+
 // Search executes a search query with optional filters
 func (idx *SearchIndex) Search(query, projectFilter, sessionFilter string) []SearchResult {
+	result := idx.SearchWithOptions(query, projectFilter, sessionFilter, SearchOptions{})
+	return result.Results
+}
+
+// SearchWithOptions executes a search query with pagination and sorting options
+func (idx *SearchIndex) SearchWithOptions(query, projectFilter, sessionFilter string, opts SearchOptions) SearchResultWithPagination {
 	if query == "" {
-		return []SearchResult{}
+		return SearchResultWithPagination{Results: []SearchResult{}}
 	}
 
 	// Parse query to extract phrases and terms
 	parsed := parseQuery(query)
 	if len(parsed.Terms) == 0 && len(parsed.Phrases) == 0 {
-		return []SearchResult{}
+		return SearchResultWithPagination{Results: []SearchResult{}}
+	}
+
+	// Apply defaults
+	if opts.Limit <= 0 {
+		opts.Limit = 20
+	}
+	if opts.Limit > 100 {
+		opts.Limit = 100
+	}
+	if opts.Sort == "" {
+		opts.Sort = "relevance"
 	}
 
 	// Find messages containing all query terms (AND logic)
@@ -151,7 +189,7 @@ func (idx *SearchIndex) Search(query, projectFilter, sessionFilter string) []Sea
 		sessionMatches[sessionKey] = append(sessionMatches[sessionKey], msgIdx)
 	}
 
-	// Build results
+	// Build results with scores
 	results := []SearchResult{}
 	for _, indices := range sessionMatches {
 		if len(indices) == 0 {
@@ -183,20 +221,131 @@ func (idx *SearchIndex) Search(query, projectFilter, sessionFilter string) []Sea
 			return result.Matches[i].Timestamp.Before(result.Matches[j].Timestamp)
 		})
 
+		// Calculate relevance score for this result
+		result.Score = idx.calculateScore(indices, parsed)
+
 		results = append(results, result)
 	}
 
-	// Sort results by most recent match
-	sort.Slice(results, func(i, j int) bool {
-		if len(results[i].Matches) == 0 || len(results[j].Matches) == 0 {
-			return false
-		}
-		return results[i].Matches[len(results[i].Matches)-1].Timestamp.After(
-			results[j].Matches[len(results[j].Matches)-1].Timestamp,
-		)
-	})
+	// Sort results based on sort option
+	if opts.Sort == "recent" {
+		// Sort by most recent match timestamp
+		sort.Slice(results, func(i, j int) bool {
+			if len(results[i].Matches) == 0 || len(results[j].Matches) == 0 {
+				return false
+			}
+			return results[i].Matches[len(results[i].Matches)-1].Timestamp.After(
+				results[j].Matches[len(results[j].Matches)-1].Timestamp,
+			)
+		})
+	} else {
+		// Sort by relevance score (descending)
+		sort.Slice(results, func(i, j int) bool {
+			return results[i].Score > results[j].Score
+		})
+	}
 
-	return results
+	// Apply pagination
+	total := len(results)
+	hasMore := false
+
+	if opts.Offset >= total {
+		results = []SearchResult{}
+	} else {
+		end := opts.Offset + opts.Limit
+		if end > total {
+			end = total
+		} else {
+			hasMore = true
+		}
+		results = results[opts.Offset:end]
+	}
+
+	return SearchResultWithPagination{
+		Results: results,
+		Total:   total,
+		HasMore: hasMore,
+		Offset:  opts.Offset,
+	}
+}
+
+// calculateScore computes a relevance score for a search result
+func (idx *SearchIndex) calculateScore(msgIndices []int, parsed ParsedQuery) float64 {
+	var score float64
+
+	// Base score: 1.0 per matching message
+	score = float64(len(msgIndices))
+
+	// Track term occurrences and other bonuses
+	termFrequency := make(map[string]int)
+	hasEarlyMatch := false
+	hasRecentMatch := false
+	phraseMatches := 0
+
+	sevenDaysAgo := time.Now().AddDate(0, 0, -7)
+
+	for _, msgIdx := range msgIndices {
+		msg := idx.messages[msgIdx]
+		lowerContent := strings.ToLower(msg.Content)
+
+		// Count term frequency
+		for _, term := range parsed.Terms {
+			termFrequency[term] += strings.Count(lowerContent, term)
+		}
+
+		// Position bonus: check if match in first 200 chars
+		for _, term := range parsed.Terms {
+			pos := strings.Index(lowerContent, term)
+			if pos != -1 && pos < 200 {
+				hasEarlyMatch = true
+				break
+			}
+		}
+
+		// Check phrases for early match too
+		for _, phrase := range parsed.Phrases {
+			pos := strings.Index(lowerContent, phrase)
+			if pos != -1 {
+				phraseMatches++
+				if pos < 200 {
+					hasEarlyMatch = true
+				}
+			}
+		}
+
+		// Recency bonus: check if within last 7 days
+		if msg.Timestamp.After(sevenDaysAgo) {
+			hasRecentMatch = true
+		}
+	}
+
+	// Term frequency bonus: +0.1 per additional occurrence (capped at 1.0 total)
+	totalExtraOccurrences := 0
+	for _, count := range termFrequency {
+		if count > 1 {
+			totalExtraOccurrences += count - 1
+		}
+	}
+	frequencyBonus := float64(totalExtraOccurrences) * 0.1
+	if frequencyBonus > 1.0 {
+		frequencyBonus = 1.0
+	}
+	score += frequencyBonus
+
+	// Position bonus: +0.5 if match in first 200 chars
+	if hasEarlyMatch {
+		score += 0.5
+	}
+
+	// Exact phrase bonus: +2.0 per phrase match
+	score += float64(phraseMatches) * 2.0
+
+	// Recency bonus: +0.2 if within last 7 days
+	if hasRecentMatch {
+		score += 0.2
+	}
+
+	return score
 }
 
 // findMatchingMessages finds message indices containing all query terms
