@@ -34,6 +34,7 @@ type Server struct {
 	indexTmpl    *template.Template
 	projectTmpl  *template.Template
 	statsTmpl    *template.Template
+	searchTmpl   *template.Template
 	// Cache for rendered HTML pages
 	cache      map[string]*cacheEntry
 	cacheMu    sync.RWMutex
@@ -68,6 +69,11 @@ func NewServer(port int, outputDir string, projects []Project) (*Server, error) 
 		return nil, fmt.Errorf("parsing stats template: %w", err)
 	}
 
+	searchTmpl, err := template.New("search").Funcs(funcMap).Parse(searchTemplate)
+	if err != nil {
+		return nil, fmt.Errorf("parsing search template: %w", err)
+	}
+
 	return &Server{
 		port:        port,
 		outputDir:   outputDir,
@@ -77,6 +83,7 @@ func NewServer(port int, outputDir string, projects []Project) (*Server, error) 
 		indexTmpl:   indexTmpl,
 		projectTmpl: projectTmpl,
 		statsTmpl:   statsTmpl,
+		searchTmpl:  searchTmpl,
 		cache:       make(map[string]*cacheEntry),
 		cacheTTL:    30 * time.Second, // Cache HTML for 30 seconds
 		stats:       ComputeStats(projects),
@@ -184,6 +191,12 @@ func (s *Server) handleStatic(fileServer http.Handler) http.HandlerFunc {
 		// Handle stats page
 		if path == "/stats" || path == "/stats.html" {
 			s.renderStatsPage(w, r)
+			return
+		}
+
+		// Handle search page
+		if path == "/search" || path == "/search.html" {
+			s.renderSearchPage(w, r)
 			return
 		}
 
@@ -455,6 +468,38 @@ func (s *Server) renderStatsPage(w http.ResponseWriter, r *http.Request) {
 	if err := s.statsTmpl.Execute(&buf, data); err != nil {
 		http.Error(w, "Template error", http.StatusInternalServerError)
 		fmt.Fprintf(os.Stderr, "Stats template error: %v\n", err)
+		return
+	}
+
+	content := buf.Bytes()
+	s.setInCache(cacheKey, content)
+
+	w.Header().Set("Content-Type", "text/html; charset=utf-8")
+	w.Write(content)
+}
+
+// renderSearchPage renders the search page
+func (s *Server) renderSearchPage(w http.ResponseWriter, r *http.Request) {
+	cacheKey := "search"
+
+	// Check cache first
+	if content, ok := s.getFromCache(cacheKey); ok {
+		w.Header().Set("Content-Type", "text/html; charset=utf-8")
+		w.Write(content)
+		return
+	}
+
+	data := struct {
+		Projects []Project
+	}{
+		Projects: s.projects,
+	}
+
+	// Render to buffer for caching
+	var buf bytes.Buffer
+	if err := s.searchTmpl.Execute(&buf, data); err != nil {
+		http.Error(w, "Template error", http.StatusInternalServerError)
+		fmt.Fprintf(os.Stderr, "Search template error: %v\n", err)
 		return
 	}
 

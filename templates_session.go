@@ -33,15 +33,16 @@ const sessionTemplate = `<!DOCTYPE html>
                     Claude Code Logs
                 </a>
                 <div class="sidebar-subtitle">{{len .AllProjects}} projects</div>
-            </div>
-            <div class="search-container">
-                <div class="search-input-wrapper">
-                    <svg class="search-icon" viewBox="0 0 20 20" fill="currentColor">
+                <a href="/search" class="stats-nav-link">
+                    <svg viewBox="0 0 20 20" fill="currentColor">
                         <path fill-rule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clip-rule="evenodd"/>
                     </svg>
-                    <input type="text" class="search-input" id="searchInput" placeholder="Search messages..." autocomplete="off">
-                    <div class="search-results" id="searchResults"></div>
-                </div>
+                    Search
+                </a>
+                <a href="/stats" class="stats-nav-link">
+                    <svg viewBox="0 0 20 20" fill="currentColor"><path d="M2 11a1 1 0 011-1h2a1 1 0 011 1v5a1 1 0 01-1 1H3a1 1 0 01-1-1v-5zm6-4a1 1 0 011-1h2a1 1 0 011 1v9a1 1 0 01-1 1H9a1 1 0 01-1-1V7zm6-3a1 1 0 011-1h2a1 1 0 011 1v12a1 1 0 01-1 1h-2a1 1 0 01-1-1V4z"/></svg>
+                    Stats
+                </a>
             </div>
             <div class="tree-controls">
                 <button type="button" class="tree-control-btn" id="expandAll">Expand All</button>
@@ -310,64 +311,12 @@ const sessionTemplate = `<!DOCTYPE html>
             });
         }
 
-        // Search functionality
-        var searchInput = document.getElementById('searchInput');
-        var searchResults = document.getElementById('searchResults');
-        var debounceTimer;
-        var baseUrl = '../../';
-
-        searchInput.addEventListener('input', function() {
-            clearTimeout(debounceTimer);
-            var query = this.value.trim();
-
-            if (query.length < 2) {
-                searchResults.classList.remove('active');
-                return;
-            }
-
-            debounceTimer = setTimeout(function() {
-                searchResults.innerHTML = '<div class="search-loading">Searching...</div>';
-                searchResults.classList.add('active');
-
-                fetch('/api/search', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ query: query, limit: 20 })
-                })
-                .then(function(r) { return r.json(); })
-                .then(function(data) {
-                    if (!data.results || data.results.length === 0) {
-                        searchResults.innerHTML = '<div class="search-no-results">No results found</div>';
-                        return;
-                    }
-                    var html = '';
-                    data.results.forEach(function(r) {
-                        r.matches.slice(0, 3).forEach(function(m) {
-                            html += '<a href="' + baseUrl + r.projectSlug + '/' + r.sessionId + '.html" class="search-result-item">';
-                            html += '<div class="search-result-project">' + r.project + '</div>';
-                            html += '<div class="search-result-title">' + r.sessionTitle + '</div>';
-                            html += '<div class="search-result-content">' + m.content.substring(0, 150) + '...</div>';
-                            html += '</a>';
-                        });
-                    });
-                    searchResults.innerHTML = html;
-                })
-                .catch(function() {
-                    searchResults.innerHTML = '<div class="search-no-results">Search error</div>';
-                });
-            }, 300);
-        });
-
-        document.addEventListener('click', function(e) {
-            if (!searchInput.contains(e.target) && !searchResults.contains(e.target)) {
-                searchResults.classList.remove('active');
-            }
-        });
-
-        searchInput.addEventListener('keydown', function(e) {
-            if (e.key === 'Escape') {
-                searchResults.classList.remove('active');
-                searchInput.blur();
+        // Global keyboard shortcut: / to search
+        document.addEventListener('keydown', function(e) {
+            if (e.target.matches('input, textarea, [contenteditable]')) return;
+            if (e.key === '/') {
+                e.preventDefault();
+                window.location.href = '/search';
             }
         });
     })();

@@ -1,12 +1,10 @@
 project:
   name: claude-code-logs
   framework: fire-v1
-
 workspace:
   type: brownfield
   structure: monolith
   default_mode: confirm
-
 intents:
   - id: session-stats-dashboard
     title: Session Stats Dashboard
@@ -22,20 +20,16 @@ intents:
         status: completed
       - id: 05-navigation-integration
         status: completed
-
   - id: dedicated-search-page
     title: Dedicated Search Page
-    status: in_progress
+    status: completed
     work_items:
-      - id: 01-search-api-pagination
+      - id: 01-hook-search-page
         status: completed
-      - id: 02-relevance-scoring
+      - id: 02-navigation-integration
         status: completed
-      - id: 03-search-page-template
+      - id: 03-remove-overlay-search
         status: completed
-      - id: 04-search-page-route
-        status: pending
-      - id: 05-remove-overlay-update-shortcuts
-        status: pending
-
+      - id: 04-keyboard-shortcut
+        status: completed
 active_run: null
