@@ -8,11 +8,13 @@ Blog article about this project https://www.cengizhan.com/p/announcing-claude-co
 
 ## Features
 
+- **Stats Dashboard**: View usage analytics with messages/tokens per day charts, project activity breakdown, and time-range filtering
+- **Project Filtering**: Filter stats by individual project to analyze per-project usage patterns
+- **Dedicated Search Page**: Full-text search across all messages with highlighted results (`/` keyboard shortcut)
+- **Inline Search**: Filter messages within a session with real-time highlighting
 - **Markdown-First**: Generates Markdown files with YAML frontmatter for easy archival and version control
 - **Server-Side Rendering**: HTML pages rendered at runtime with caching for fast consecutive requests
 - **Client-Side Rendering**: Markdown content rendered in browser using marked.js + highlight.js
-- **Full-Text Search**: Search across all messages with highlighted results and full-page overlay
-- **Inline Search**: Filter messages within a session with real-time highlighting
 - **Hide Tool Calls**: Toggle to hide tool calls for a compact conversation view
 - **Tree View Sidebar**: Collapsible project/session tree with resizable width
 - **Card-Based Layout**: Clean card views for projects and sessions
@@ -163,5 +165,6 @@ MIT
 ## Links
 
 - [GitHub Repository](https://github.com/fabriqaai/claude-code-logs)
+- [Changelog](CHANGELOG.md)
 - [Homebrew Tap](https://github.com/fabriqaai/homebrew-tap)
 - [Releases](https://github.com/fabriqaai/claude-code-logs/releases)
