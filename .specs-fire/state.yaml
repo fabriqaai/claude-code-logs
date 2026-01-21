@@ -1,6 +1,7 @@
 project:
   name: claude-code-logs
   framework: fire-v1
+  fire_version: "0.1.8"
 workspace:
   type: brownfield
   structure: monolith
@@ -34,7 +35,7 @@ intents:
         status: completed
   - id: project-stats-filtering
     title: Project-Based Stats Filtering
-    status: in_progress
+    status: completed
     work_items:
       - id: 01-stats-data-model-extension
         status: completed
