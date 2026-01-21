@@ -37,18 +37,62 @@ intents:
     status: in_progress
     work_items:
       - id: 01-stats-data-model-extension
-        status: pending
+        status: completed
+        run_id: run-006
       - id: 02-project-filter-ui
-        status: pending
+        status: completed
+        run_id: run-006
       - id: 03-client-side-filtering
-        status: pending
-active_run:
-  id: run-006
-  scope: single
-  work_items:
-    - id: 01-stats-data-model-extension
-      intent: project-stats-filtering
-      mode: confirm
-      status: in_progress
-  current_item: 01-stats-data-model-extension
-  started: 2026-01-21T15:42:05.686Z
+        status: completed
+        run_id: run-006
+active_run: null
+runs:
+  completed:
+    - id: run-001
+      work_items:
+        - 02-stats-api-endpoint
+      intent: session-stats-dashboard
+      scope: batch
+      completed: 2026-01-20T01:04:00Z
+    - id: run-002
+      work_items:
+        - 03-stats-page-charts
+      intent: session-stats-dashboard
+      scope: batch
+      completed: 2026-01-20T01:26:00Z
+    - id: run-003
+      work_items:
+        - 04-time-range-filtering
+        - 05-navigation-integration
+      intent: session-stats-dashboard
+      scope: batch
+      completed: 2026-01-20T01:29:00Z
+    - id: run-004
+      work_items:
+        - 01-search-api-pagination
+        - 02-relevance-scoring
+      intent: dedicated-search-page(manually added)
+      scope: batch
+      completed: 2026-01-20T12:13:00Z
+    - id: run-005
+      work_items:
+        - 01-hook-search-page
+        - 02-navigation-integration
+        - 03-remove-overlay-search
+        - 04-keyboard-shortcut
+      intent: dedicated-search-page
+      scope: wide
+      completed: 2026-01-20T17:04:00Z
+    - id: run-006
+      scope: batch
+      work_items:
+        - id: 01-stats-data-model-extension
+          intent: project-stats-filtering
+          mode: confirm
+        - id: 02-project-filter-ui
+          intent: project-stats-filtering
+          mode: autopilot
+        - id: 03-client-side-filtering
+          intent: project-stats-filtering
+          mode: confirm
+      completed: 2026-01-21T16:49:37.273Z

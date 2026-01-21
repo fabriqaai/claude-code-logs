@@ -263,6 +263,116 @@ func TestFilterStatsByTimeRange(t *testing.T) {
 	}
 }
 
+func TestComputeStats_PerProjectTimeSeries(t *testing.T) {
+	now := time.Now()
+	yesterday := now.AddDate(0, 0, -1)
+
+	projects := []Project{
+		{
+			Path:       "/project/alpha",
+			FolderName: "-project-alpha",
+			Sessions: []Session{
+				{
+					ID:        "session-1",
+					CreatedAt: now.Add(-2 * time.Hour),
+					UpdatedAt: now,
+					Messages: []Message{
+						{UUID: "msg-1", Role: "user", Timestamp: now.Add(-2 * time.Hour), Content: []ContentBlock{{Type: "text", Text: "Alpha message 1"}}},
+						{UUID: "msg-2", Role: "assistant", Timestamp: now, Content: []ContentBlock{{Type: "text", Text: "Alpha response 1"}}},
+					},
+				},
+			},
+		},
+		{
+			Path:       "/project/beta",
+			FolderName: "-project-beta",
+			Sessions: []Session{
+				{
+					ID:        "session-2",
+					CreatedAt: yesterday.Add(-1 * time.Hour),
+					UpdatedAt: yesterday,
+					Messages: []Message{
+						{UUID: "msg-3", Role: "user", Timestamp: yesterday.Add(-1 * time.Hour), Content: []ContentBlock{{Type: "text", Text: "Beta message yesterday"}}},
+						{UUID: "msg-4", Role: "assistant", Timestamp: yesterday, Content: []ContentBlock{{Type: "text", Text: "Beta response yesterday"}}},
+						{UUID: "msg-5", Role: "user", Timestamp: yesterday.Add(30 * time.Minute), Content: []ContentBlock{{Type: "text", Text: "Beta follow-up"}}},
+					},
+				},
+			},
+		},
+	}
+
+	stats := ComputeStats(projects)
+
+	// Verify we have 2 projects
+	if len(stats.ProjectStats) != 2 {
+		t.Fatalf("Expected 2 ProjectStats, got %d", len(stats.ProjectStats))
+	}
+
+	// Find alpha and beta projects
+	var alpha, beta *ProjectStat
+	for i := range stats.ProjectStats {
+		if stats.ProjectStats[i].Slug == "project-alpha" {
+			alpha = &stats.ProjectStats[i]
+		}
+		if stats.ProjectStats[i].Slug == "project-beta" {
+			beta = &stats.ProjectStats[i]
+		}
+	}
+
+	if alpha == nil {
+		t.Fatal("Could not find project-alpha in stats")
+	}
+	if beta == nil {
+		t.Fatal("Could not find project-beta in stats")
+	}
+
+	// Alpha should have MessagesPerDay with today's date having value 2
+	if len(alpha.MessagesPerDay) == 0 {
+		t.Error("Expected alpha.MessagesPerDay to have data")
+	}
+
+	todayStr := now.Format("2006-01-02")
+	foundAlphaToday := false
+	for _, tp := range alpha.MessagesPerDay {
+		if tp.Date == todayStr {
+			foundAlphaToday = true
+			if tp.Value != 2 {
+				t.Errorf("Expected alpha to have 2 messages today, got %d", tp.Value)
+			}
+		}
+	}
+	if !foundAlphaToday {
+		t.Error("Expected to find today's date in alpha.MessagesPerDay")
+	}
+
+	// Beta should have MessagesPerDay with yesterday's date having value 3
+	if len(beta.MessagesPerDay) == 0 {
+		t.Error("Expected beta.MessagesPerDay to have data")
+	}
+
+	yesterdayStr := yesterday.Format("2006-01-02")
+	foundBetaYesterday := false
+	for _, tp := range beta.MessagesPerDay {
+		if tp.Date == yesterdayStr {
+			foundBetaYesterday = true
+			if tp.Value != 3 {
+				t.Errorf("Expected beta to have 3 messages yesterday, got %d", tp.Value)
+			}
+		}
+	}
+	if !foundBetaYesterday {
+		t.Error("Expected to find yesterday's date in beta.MessagesPerDay")
+	}
+
+	// Verify TokensPerDay is also populated
+	if len(alpha.TokensPerDay) == 0 {
+		t.Error("Expected alpha.TokensPerDay to have data")
+	}
+	if len(beta.TokensPerDay) == 0 {
+		t.Error("Expected beta.TokensPerDay to have data")
+	}
+}
+
 func TestAvgSessionLength(t *testing.T) {
 	now := time.Now()
 	projects := []Project{

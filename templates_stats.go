@@ -91,12 +91,23 @@ const statsTemplate = `<!DOCTYPE html>
             </div>
 
             <div id="stats-content" class="stats-content" style="display: none;">
-                <!-- Time Range Filter -->
-                <div class="time-filter">
-                    <button type="button" class="time-filter-btn" data-range="today">Today</button>
-                    <button type="button" class="time-filter-btn" data-range="week">This Week</button>
-                    <button type="button" class="time-filter-btn active" data-range="month">This Month</button>
-                    <button type="button" class="time-filter-btn" data-range="all">All Time</button>
+                <!-- Filters -->
+                <div class="stats-filters">
+                    <!-- Time Range Filter -->
+                    <div class="time-filter">
+                        <button type="button" class="time-filter-btn" data-range="today">Today</button>
+                        <button type="button" class="time-filter-btn" data-range="week">This Week</button>
+                        <button type="button" class="time-filter-btn active" data-range="month">This Month</button>
+                        <button type="button" class="time-filter-btn" data-range="all">All Time</button>
+                    </div>
+
+                    <!-- Project Filter -->
+                    <div class="project-filter-container">
+                        <label for="project-filter" class="filter-label">Project:</label>
+                        <select id="project-filter" class="project-filter">
+                            <option value="">All Projects</option>
+                        </select>
+                    </div>
                 </div>
 
                 <!-- Summary Cards -->
@@ -208,6 +219,7 @@ const statsTemplate = `<!DOCTYPE html>
         var tokensChart = null;
         var projectsChart = null;
         var currentRange = 'month';
+        var currentProject = ''; // Empty string means "All Projects"
 
         // Time range filter setup
         var filterBtns = document.querySelectorAll('.time-filter-btn');
@@ -229,9 +241,63 @@ const statsTemplate = `<!DOCTYPE html>
             });
         });
 
-        function filterDataByRange(data, range) {
-            if (range === 'all') return data;
+        // Project filter setup
+        var projectFilter = document.getElementById('project-filter');
+        projectFilter.addEventListener('change', function() {
+            currentProject = projectFilter.value;
+            if (fullData) {
+                var filtered = filterDataByRange(fullData, currentRange);
+                updateDisplay(filtered);
+            }
+        });
 
+        function populateProjectFilter(projectStats) {
+            // Clear existing options except "All Projects"
+            while (projectFilter.options.length > 1) {
+                projectFilter.remove(1);
+            }
+            // Sort projects by messages (most active first)
+            var sorted = projectStats.slice().sort(function(a, b) { return b.messages - a.messages; });
+            sorted.forEach(function(project) {
+                var option = document.createElement('option');
+                option.value = project.slug;
+                var name = project.path.split('/').pop() || project.slug;
+                option.textContent = name.length > 30 ? name.substring(0, 27) + '...' : name;
+                projectFilter.appendChild(option);
+            });
+        }
+
+        function getProjectData(projectSlug) {
+            if (!projectSlug || !fullData) return null;
+            return fullData.projectStats.find(function(p) { return p.slug === projectSlug; });
+        }
+
+        function filterDataByRange(data, range) {
+            // Get base data - either from selected project or aggregated
+            var projectData = getProjectData(currentProject);
+            var baseMessagesPerDay = projectData ? projectData.messagesPerDay : data.messagesPerDay;
+            var baseTokensPerDay = projectData ? projectData.tokensPerDay : data.tokensPerDay;
+            var baseTotalMessages = projectData ? projectData.messages : data.totalMessages;
+            var baseTotalTokens = projectData ? projectData.tokens : data.totalTokens;
+            var baseSessions = projectData ? projectData.sessions : data.totalSessions;
+
+            // If no time filter, return project-filtered data
+            if (range === 'all') {
+                return {
+                    totalProjects: projectData ? 1 : data.totalProjects,
+                    totalSessions: baseSessions,
+                    totalMessages: baseTotalMessages,
+                    totalTokens: baseTotalTokens,
+                    messagesPerDay: baseMessagesPerDay || [],
+                    tokensPerDay: baseTokensPerDay || [],
+                    projectStats: data.projectStats,
+                    avgSessionLengthMins: data.avgSessionLengthMins,
+                    avgMessagesPerSession: data.avgMessagesPerSession,
+                    selectedProject: currentProject
+                };
+            }
+
+            // Apply time range filter
             var now = new Date();
             var cutoff;
             switch (range) {
@@ -248,23 +314,24 @@ const statsTemplate = `<!DOCTYPE html>
             var cutoffStr = cutoff.toISOString().split('T')[0];
 
             // Filter time series
-            var filteredMessages = data.messagesPerDay.filter(function(d) { return d.date >= cutoffStr; });
-            var filteredTokens = data.tokensPerDay.filter(function(d) { return d.date >= cutoffStr; });
+            var filteredMessages = (baseMessagesPerDay || []).filter(function(d) { return d.date >= cutoffStr; });
+            var filteredTokens = (baseTokensPerDay || []).filter(function(d) { return d.date >= cutoffStr; });
 
             // Recalculate totals from filtered data
             var totalMessages = filteredMessages.reduce(function(sum, d) { return sum + d.value; }, 0);
             var totalTokens = filteredTokens.reduce(function(sum, d) { return sum + d.value; }, 0);
 
             return {
-                totalProjects: data.totalProjects,
-                totalSessions: data.totalSessions,
+                totalProjects: projectData ? 1 : data.totalProjects,
+                totalSessions: baseSessions,
                 totalMessages: totalMessages,
                 totalTokens: totalTokens,
                 messagesPerDay: filteredMessages,
                 tokensPerDay: filteredTokens,
                 projectStats: data.projectStats,
                 avgSessionLengthMins: data.avgSessionLengthMins,
-                avgMessagesPerSession: data.avgMessagesPerSession
+                avgMessagesPerSession: data.avgMessagesPerSession,
+                selectedProject: currentProject
             };
         }
 
@@ -272,10 +339,13 @@ const statsTemplate = `<!DOCTYPE html>
             // Update summary cards
             document.getElementById('stat-messages').textContent = formatNumber(data.totalMessages);
             document.getElementById('stat-tokens').textContent = formatNumber(data.totalTokens);
+            document.getElementById('stat-sessions').textContent = formatNumber(data.totalSessions);
+            document.getElementById('stat-projects').textContent = formatNumber(data.totalProjects);
 
             // Update charts
             updateMessagesChart(data.messagesPerDay);
             updateTokensChart(data.tokensPerDay);
+            updateProjectsChart(data.projectStats, data.selectedProject);
         }
 
         function updateMessagesChart(data) {
@@ -298,11 +368,35 @@ const statsTemplate = `<!DOCTYPE html>
             }
         }
 
+        function updateProjectsChart(projectStats, selectedProject) {
+            if (!projectsChart) return;
+
+            // Sort by messages and take top 10
+            var sorted = projectStats.slice().sort(function(a, b) { return b.messages - a.messages; }).slice(0, 10);
+
+            // Generate colors - highlight selected, dim others
+            var colors = sorted.map(function(d) {
+                if (!selectedProject) return accentColor; // No selection = all normal
+                return d.slug === selectedProject ? accentColor : 'rgba(194, 65, 12, 0.3)';
+            });
+
+            projectsChart.data.labels = sorted.map(function(d) {
+                var name = d.path.split('/').pop() || d.slug;
+                return name.length > 25 ? name.substring(0, 22) + '...' : name;
+            });
+            projectsChart.data.datasets[0].data = sorted.map(function(d) { return d.messages; });
+            projectsChart.data.datasets[0].backgroundColor = colors;
+            projectsChart.update();
+        }
+
         // Fetch and render stats
         fetch('/api/stats')
             .then(function(r) { return r.json(); })
             .then(function(data) {
                 fullData = data;
+
+                // Populate project filter dropdown
+                populateProjectFilter(data.projectStats);
 
                 // Apply default filter (month)
                 var filtered = filterDataByRange(data, currentRange);
@@ -640,11 +734,20 @@ const statsCSS = `
     animation: fadeIn 0.4s ease-out;
 }
 
+/* Stats Filters Container */
+.stats-filters {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 24px;
+    flex-wrap: wrap;
+}
+
 /* Time Range Filter */
 .time-filter {
     display: flex;
     gap: 8px;
-    margin-bottom: 24px;
     flex-wrap: wrap;
 }
 
@@ -675,6 +778,49 @@ const statsCSS = `
 .time-filter-btn.active:hover {
     background: var(--accent-hover);
     border-color: var(--accent-hover);
+}
+
+/* Project Filter */
+.project-filter-container {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.filter-label {
+    font-size: 0.85rem;
+    font-weight: 500;
+    color: var(--text-secondary);
+}
+
+.project-filter {
+    padding: 8px 32px 8px 12px;
+    border: 1px solid var(--border-subtle);
+    border-radius: 20px;
+    background: var(--bg-secondary);
+    color: var(--text-secondary);
+    font-family: var(--font-body);
+    font-size: 0.85rem;
+    font-weight: 500;
+    cursor: pointer;
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%2357534E' d='M3 4.5L6 7.5L9 4.5'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 12px center;
+    min-width: 150px;
+    max-width: 200px;
+    transition: all var(--transition-fast);
+}
+
+.project-filter:hover {
+    border-color: var(--border-medium);
+    background-color: var(--bg-tertiary);
+}
+
+.project-filter:focus {
+    outline: none;
+    border-color: var(--accent-primary);
+    box-shadow: 0 0 0 2px var(--accent-subtle);
 }
 
 /* Summary Cards */
@@ -814,22 +960,36 @@ const statsCSS = `
 }
 
 @media (max-width: 768px) {
+    .stats-filters {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .project-filter-container {
+        width: 100%;
+    }
+
+    .project-filter {
+        flex: 1;
+        max-width: none;
+    }
+
     .stats-summary {
         grid-template-columns: 1fr 1fr;
     }
-    
+
     .charts-grid {
         grid-template-columns: 1fr;
     }
-    
+
     .chart-card.chart-wide {
         grid-column: span 1;
     }
-    
+
     .stat-card-wide {
         grid-column: span 2;
     }
-    
+
     .stat-inline {
         flex-direction: column;
         gap: 16px;

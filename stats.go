@@ -36,12 +36,14 @@ type TimePoint struct {
 
 // ProjectStat holds statistics for a single project
 type ProjectStat struct {
-	Path     string `json:"path"`
-	Slug     string `json:"slug"`
-	Sessions int    `json:"sessions"`
-	Messages int    `json:"messages"`
-	Tokens   int    `json:"tokens"`
-	LastUsed time.Time `json:"lastUsed"`
+	Path           string      `json:"path"`
+	Slug           string      `json:"slug"`
+	Sessions       int         `json:"sessions"`
+	Messages       int         `json:"messages"`
+	Tokens         int         `json:"tokens"`
+	LastUsed       time.Time   `json:"lastUsed"`
+	MessagesPerDay []TimePoint `json:"messagesPerDay"`
+	TokensPerDay   []TimePoint `json:"tokensPerDay"`
 }
 
 // ComputeStats calculates analytics from loaded projects
@@ -57,19 +59,30 @@ func ComputeStats(projects []Project) *StatsData {
 		return stats
 	}
 
-	// Maps for daily aggregation
+	// Maps for daily aggregation (global)
 	messagesByDay := make(map[string]int)
 	tokensByDay := make(map[string]int)
+
+	// Maps for per-project daily aggregation
+	projectMessagesByDay := make(map[string]map[string]int)
+	projectTokensByDay := make(map[string]map[string]int)
 
 	// Track session lengths for averaging
 	var totalSessionMins float64
 	var sessionCount int
 
 	for _, project := range projects {
+		slug := ProjectSlug(project.Path)
 		projectStat := ProjectStat{
 			Path:     project.Path,
-			Slug:     ProjectSlug(project.Path),
+			Slug:     slug,
 			Sessions: len(project.Sessions),
+		}
+
+		// Initialize per-project maps
+		if projectMessagesByDay[slug] == nil {
+			projectMessagesByDay[slug] = make(map[string]int)
+			projectTokensByDay[slug] = make(map[string]int)
 		}
 
 		for _, session := range project.Sessions {
@@ -98,12 +111,20 @@ func ComputeStats(projects []Project) *StatsData {
 				stats.TotalTokens += tokens
 				projectStat.Tokens += tokens
 
-				// Aggregate by day
+				// Aggregate by day (global)
 				day := msg.Timestamp.Format("2006-01-02")
 				messagesByDay[day]++
 				tokensByDay[day] += tokens
+
+				// Aggregate by day (per-project)
+				projectMessagesByDay[slug][day]++
+				projectTokensByDay[slug][day] += tokens
 			}
 		}
+
+		// Build per-project time series
+		projectStat.MessagesPerDay = buildTimeSeries(projectMessagesByDay[slug], 30)
+		projectStat.TokensPerDay = buildTimeSeries(projectTokensByDay[slug], 30)
 
 		stats.ProjectStats = append(stats.ProjectStats, projectStat)
 	}
