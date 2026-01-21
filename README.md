@@ -2,6 +2,8 @@
 
 Browse and search your Claude Code chat logs with a local web interface.
 
+<!-- Last updated: 2026-01-21T17:30:00Z -->
+
 Blog article about this project https://www.cengizhan.com/p/announcing-claude-code-logs-a-searchable
 
 ## Features
