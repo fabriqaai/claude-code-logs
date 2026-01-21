@@ -32,4 +32,23 @@ intents:
         status: completed
       - id: 04-keyboard-shortcut
         status: completed
-active_run: null
+  - id: project-stats-filtering
+    title: Project-Based Stats Filtering
+    status: in_progress
+    work_items:
+      - id: 01-stats-data-model-extension
+        status: pending
+      - id: 02-project-filter-ui
+        status: pending
+      - id: 03-client-side-filtering
+        status: pending
+active_run:
+  id: run-006
+  scope: single
+  work_items:
+    - id: 01-stats-data-model-extension
+      intent: project-stats-filtering
+      mode: confirm
+      status: in_progress
+  current_item: 01-stats-data-model-extension
+  started: 2026-01-21T15:42:05.686Z
