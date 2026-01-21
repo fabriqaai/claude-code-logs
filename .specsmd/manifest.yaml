@@ -1,6 +1,6 @@
 flow: fire
-version: 0.0.0-dev.62
-installed_at: '2026-01-21T15:36:26.725Z'
+version: 0.0.0-dev.69
+installed_at: '2026-01-21T16:22:42.728Z'
 tools:
   - claude
   - copilot

@@ -7,7 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-## [0.1.25] - 2026-01-21
+## [0.1.26] - 2026-01-21
 
 ### Added
 - Project-based filtering on stats dashboard - filter messages, tokens, and charts by individual project
@@ -48,8 +48,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - File watching for auto-regeneration
 - Mobile responsive design
 
-[Unreleased]: https://github.com/fabriqaai/claude-code-logs/compare/v0.1.25...HEAD
-[0.1.25]: https://github.com/fabriqaai/claude-code-logs/compare/v0.1.24...v0.1.25
+[Unreleased]: https://github.com/fabriqaai/claude-code-logs/compare/v0.1.26...HEAD
+[0.1.26]: https://github.com/fabriqaai/claude-code-logs/compare/v0.1.24...v0.1.26
 [0.1.24]: https://github.com/fabriqaai/claude-code-logs/compare/v0.1.23...v0.1.24
 [0.1.23]: https://github.com/fabriqaai/claude-code-logs/compare/v0.1.22...v0.1.23
 [0.1.22]: https://github.com/fabriqaai/claude-code-logs/releases/tag/v0.1.22
