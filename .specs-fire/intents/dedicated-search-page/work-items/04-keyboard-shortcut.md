@@ -4,7 +4,7 @@ title: Keyboard Shortcut for Search Focus
 intent: dedicated-search-page
 complexity: medium
 mode: confirm
-status: pending
+status: completed
 depends_on: [01-hook-search-page]
 created: 2026-01-20
 ---

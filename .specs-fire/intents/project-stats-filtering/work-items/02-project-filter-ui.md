@@ -4,7 +4,7 @@ title: Add Project Filter UI
 intent: project-stats-filtering
 complexity: low
 mode: autopilot
-status: pending
+status: completed
 depends_on: [01-stats-data-model-extension]
 created: 2026-01-21
 ---

@@ -4,7 +4,7 @@ title: Integrate Search Link in Navigation
 intent: dedicated-search-page
 complexity: low
 mode: autopilot
-status: pending
+status: completed
 depends_on: [01-hook-search-page]
 created: 2026-01-20
 ---

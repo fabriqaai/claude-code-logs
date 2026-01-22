@@ -4,7 +4,7 @@ title: Remove Old Overlay Search
 intent: dedicated-search-page
 complexity: medium
 mode: confirm
-status: pending
+status: completed
 depends_on: [02-navigation-integration]
 created: 2026-01-20
 ---
