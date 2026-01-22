@@ -101,12 +101,69 @@ const statsTemplate = `<!DOCTYPE html>
                         <button type="button" class="time-filter-btn" data-range="all">All Time</button>
                     </div>
 
-                    <!-- Project Filter -->
-                    <div class="project-filter-container">
-                        <label for="project-filter" class="filter-label">Project:</label>
-                        <select id="project-filter" class="project-filter">
-                            <option value="">All Projects</option>
-                        </select>
+                    <div class="filter-row">
+                        <!-- Account Filter -->
+                        <div class="account-filter-container">
+                            <label class="filter-label">Account:</label>
+                            <select id="account-filter" class="account-filter">
+                                <option value="">All Accounts</option>
+                            </select>
+                            <button type="button" class="account-settings-btn" id="account-settings-btn" title="Configure Accounts">
+                                <svg viewBox="0 0 20 20" fill="currentColor">
+                                    <path fill-rule="evenodd" d="M11.49 3.17c-.38-1.56-2.6-1.56-2.98 0a1.532 1.532 0 01-2.286.948c-1.372-.836-2.942.734-2.106 2.106.54.886.061 2.042-.947 2.287-1.561.379-1.561 2.6 0 2.978a1.532 1.532 0 01.947 2.287c-.836 1.372.734 2.942 2.106 2.106a1.532 1.532 0 012.287.947c.379 1.561 2.6 1.561 2.978 0a1.533 1.533 0 012.287-.947c1.372.836 2.942-.734 2.106-2.106a1.533 1.533 0 01.947-2.287c1.561-.379 1.561-2.6 0-2.978a1.532 1.532 0 01-.947-2.287c.836-1.372-.734-2.942-2.106-2.106a1.532 1.532 0 01-2.287-.947zM10 13a3 3 0 100-6 3 3 0 000 6z" clip-rule="evenodd"/>
+                                </svg>
+                            </button>
+                        </div>
+
+                        <!-- Project Multi-Select Filter -->
+                        <div class="project-filter-container">
+                            <label class="filter-label">Projects:</label>
+                            <div class="multi-select-wrapper">
+                                <div class="multi-select-display" id="project-filter-display">
+                                    <span class="multi-select-placeholder">All Projects</span>
+                                    <svg class="multi-select-chevron" viewBox="0 0 20 20" fill="currentColor">
+                                        <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd"/>
+                                    </svg>
+                                </div>
+                                <div class="multi-select-dropdown" id="project-filter-dropdown">
+                                    <div class="multi-select-search-wrapper">
+                                        <input type="text" class="multi-select-search" id="project-filter-search" placeholder="Search projects...">
+                                    </div>
+                                    <div class="multi-select-options" id="project-filter-options"></div>
+                                    <div class="multi-select-actions">
+                                        <button type="button" class="multi-select-action" id="project-filter-clear">Clear All</button>
+                                        <button type="button" class="multi-select-action primary" id="project-filter-done">Done</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Selected Projects Chips -->
+                <div class="selected-chips" id="selected-projects-chips"></div>
+
+                <!-- Account Settings Modal -->
+                <div class="modal-backdrop" id="account-modal-backdrop">
+                    <div class="modal" id="account-modal">
+                        <div class="modal-header">
+                            <h2 class="modal-title">Account Settings</h2>
+                            <button type="button" class="modal-close" id="account-modal-close">&times;</button>
+                        </div>
+                        <div class="modal-body">
+                            <p class="modal-description">Map path patterns to accounts. Projects matching a pattern will be assigned to that account.</p>
+                            <div class="account-mappings" id="account-mappings">
+                                <!-- Dynamic account mapping rows -->
+                            </div>
+                            <button type="button" class="add-mapping-btn" id="add-mapping-btn">
+                                <svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd"/></svg>
+                                Add Account Mapping
+                            </button>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="modal-btn" id="account-modal-cancel">Cancel</button>
+                            <button type="button" class="modal-btn primary" id="account-modal-save">Save</button>
+                        </div>
                     </div>
                 </div>
 
@@ -127,6 +184,10 @@ const statsTemplate = `<!DOCTYPE html>
                     <div class="stat-card">
                         <div class="stat-value" id="stat-tokens">-</div>
                         <div class="stat-label">Est. Tokens</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="stat-cost">-</div>
+                        <div class="stat-label">Est. Cost</div>
                     </div>
                 </div>
 
@@ -213,13 +274,28 @@ const statsTemplate = `<!DOCTYPE html>
             return hours + 'h ' + remainMins + 'm';
         }
 
+        function formatCurrency(amount) {
+            if (amount >= 1000) return '$' + (amount / 1000).toFixed(1) + 'K';
+            if (amount >= 100) return '$' + amount.toFixed(0);
+            return '$' + amount.toFixed(2);
+        }
+
         // Store full data for filtering
         var fullData = null;
         var messagesChart = null;
         var tokensChart = null;
         var projectsChart = null;
         var currentRange = 'month';
-        var currentProject = ''; // Empty string means "All Projects"
+        var selectedProjects = []; // Array of selected project slugs (empty = all)
+
+        // Multi-select elements
+        var filterDisplay = document.getElementById('project-filter-display');
+        var filterDropdown = document.getElementById('project-filter-dropdown');
+        var filterOptions = document.getElementById('project-filter-options');
+        var filterSearch = document.getElementById('project-filter-search');
+        var filterClear = document.getElementById('project-filter-clear');
+        var filterDone = document.getElementById('project-filter-done');
+        var chipsContainer = document.getElementById('selected-projects-chips');
 
         // Time range filter setup
         var filterBtns = document.querySelectorAll('.time-filter-btn');
@@ -235,65 +311,248 @@ const statsTemplate = `<!DOCTYPE html>
 
                 // Re-render with filtered data
                 if (fullData) {
-                    var filtered = filterDataByRange(fullData, range);
+                    var filtered = filterData(fullData, currentRange, selectedProjects);
                     updateDisplay(filtered);
                 }
             });
         });
 
-        // Project filter setup
-        var projectFilter = document.getElementById('project-filter');
-        projectFilter.addEventListener('change', function() {
-            currentProject = projectFilter.value;
+        // Multi-select dropdown toggle
+        filterDisplay.addEventListener('click', function(e) {
+            e.stopPropagation();
+            var isOpen = filterDropdown.classList.contains('open');
+            if (isOpen) {
+                closeDropdown();
+            } else {
+                openDropdown();
+            }
+        });
+
+        function openDropdown() {
+            filterDropdown.classList.add('open');
+            filterDisplay.classList.add('active');
+            filterSearch.focus();
+        }
+
+        function closeDropdown() {
+            filterDropdown.classList.remove('open');
+            filterDisplay.classList.remove('active');
+            filterSearch.value = '';
+            filterOptionsFromSearch('');
+        }
+
+        // Close dropdown when clicking outside
+        document.addEventListener('click', function(e) {
+            if (!filterDropdown.contains(e.target) && !filterDisplay.contains(e.target)) {
+                closeDropdown();
+            }
+        });
+
+        // Search filtering
+        filterSearch.addEventListener('input', function() {
+            filterOptionsFromSearch(filterSearch.value.toLowerCase());
+        });
+
+        function filterOptionsFromSearch(query) {
+            var options = filterOptions.querySelectorAll('.multi-select-option');
+            options.forEach(function(opt) {
+                var label = opt.querySelector('.multi-select-option-label').textContent.toLowerCase();
+                opt.style.display = label.includes(query) ? '' : 'none';
+            });
+        }
+
+        // Clear all selections
+        filterClear.addEventListener('click', function() {
+            selectedProjects = [];
+            updateProjectSelection();
             if (fullData) {
-                var filtered = filterDataByRange(fullData, currentRange);
+                var filtered = filterData(fullData, currentRange, selectedProjects);
                 updateDisplay(filtered);
             }
         });
 
+        // Done button
+        filterDone.addEventListener('click', function() {
+            closeDropdown();
+        });
+
         function populateProjectFilter(projectStats) {
-            // Clear existing options except "All Projects"
-            while (projectFilter.options.length > 1) {
-                projectFilter.remove(1);
-            }
+            filterOptions.innerHTML = '';
             // Sort projects by messages (most active first)
             var sorted = projectStats.slice().sort(function(a, b) { return b.messages - a.messages; });
             sorted.forEach(function(project) {
-                var option = document.createElement('option');
-                option.value = project.slug;
                 var name = project.path.split('/').pop() || project.slug;
-                option.textContent = name.length > 30 ? name.substring(0, 27) + '...' : name;
-                projectFilter.appendChild(option);
+                var displayName = name.length > 35 ? name.substring(0, 32) + '...' : name;
+
+                var option = document.createElement('div');
+                option.className = 'multi-select-option';
+                option.dataset.slug = project.slug;
+                option.innerHTML = '<div class="multi-select-checkbox"><svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg></div>' +
+                    '<span class="multi-select-option-label">' + displayName + '</span>' +
+                    '<span class="multi-select-option-meta">' + formatNumber(project.messages) + ' msgs</span>';
+
+                option.addEventListener('click', function() {
+                    toggleProjectSelection(project.slug);
+                });
+
+                filterOptions.appendChild(option);
             });
         }
 
-        function getProjectData(projectSlug) {
-            if (!projectSlug || !fullData) return null;
-            return fullData.projectStats.find(function(p) { return p.slug === projectSlug; });
+        function toggleProjectSelection(slug) {
+            var idx = selectedProjects.indexOf(slug);
+            if (idx === -1) {
+                selectedProjects.push(slug);
+            } else {
+                selectedProjects.splice(idx, 1);
+            }
+            updateProjectSelection();
+            if (fullData) {
+                var filtered = filterData(fullData, currentRange, selectedProjects);
+                updateDisplay(filtered);
+            }
         }
 
-        function filterDataByRange(data, range) {
-            // Get base data - either from selected project or aggregated
-            var projectData = getProjectData(currentProject);
-            var baseMessagesPerDay = projectData ? projectData.messagesPerDay : data.messagesPerDay;
-            var baseTokensPerDay = projectData ? projectData.tokensPerDay : data.tokensPerDay;
-            var baseTotalMessages = projectData ? projectData.messages : data.totalMessages;
-            var baseTotalTokens = projectData ? projectData.tokens : data.totalTokens;
-            var baseSessions = projectData ? projectData.sessions : data.totalSessions;
+        function updateProjectSelection() {
+            // Update dropdown options
+            var options = filterOptions.querySelectorAll('.multi-select-option');
+            options.forEach(function(opt) {
+                var slug = opt.dataset.slug;
+                if (selectedProjects.indexOf(slug) !== -1) {
+                    opt.classList.add('selected');
+                } else {
+                    opt.classList.remove('selected');
+                }
+            });
+
+            // Update display text
+            var placeholder = filterDisplay.querySelector('.multi-select-placeholder');
+            var countBadge = filterDisplay.querySelector('.multi-select-count');
+
+            if (selectedProjects.length === 0) {
+                placeholder.textContent = 'All Projects';
+                if (countBadge) countBadge.remove();
+            } else {
+                placeholder.textContent = selectedProjects.length + ' selected';
+                if (!countBadge) {
+                    countBadge = document.createElement('span');
+                    countBadge.className = 'multi-select-count';
+                    filterDisplay.insertBefore(countBadge, filterDisplay.querySelector('.multi-select-chevron'));
+                }
+                countBadge.textContent = selectedProjects.length;
+            }
+
+            // Update chips
+            renderChips();
+        }
+
+        function renderChips() {
+            chipsContainer.innerHTML = '';
+            if (!fullData) return;
+
+            selectedProjects.forEach(function(slug) {
+                var project = fullData.projectStats.find(function(p) { return p.slug === slug; });
+                if (!project) return;
+
+                var name = project.path.split('/').pop() || slug;
+                var displayName = name.length > 20 ? name.substring(0, 17) + '...' : name;
+
+                var chip = document.createElement('div');
+                chip.className = 'selected-chip';
+                chip.innerHTML = '<span>' + displayName + '</span>' +
+                    '<button type="button" class="selected-chip-remove" data-slug="' + slug + '">' +
+                    '<svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"/></svg>' +
+                    '</button>';
+
+                chip.querySelector('.selected-chip-remove').addEventListener('click', function() {
+                    toggleProjectSelection(slug);
+                });
+
+                chipsContainer.appendChild(chip);
+            });
+        }
+
+        function getSelectedProjectsData() {
+            if (!fullData || selectedProjects.length === 0) return null;
+            return fullData.projectStats.filter(function(p) {
+                return selectedProjects.indexOf(p.slug) !== -1;
+            });
+        }
+
+        function aggregateProjectsData(projects) {
+            if (!projects || projects.length === 0) return null;
+
+            // Aggregate time series by day
+            var messagesByDay = {};
+            var tokensByDay = {};
+            var costByDay = {};
+            var totalMessages = 0;
+            var totalTokens = 0;
+            var totalCost = 0;
+            var totalSessions = 0;
+            var totalSessionMins = 0;
+
+            projects.forEach(function(p) {
+                totalMessages += p.messages;
+                totalTokens += p.tokens;
+                totalCost += p.cost || 0;
+                totalSessions += p.sessions;
+                totalSessionMins += (p.avgSessionLengthMins || 0) * p.sessions;
+
+                (p.messagesPerDay || []).forEach(function(d) {
+                    messagesByDay[d.date] = (messagesByDay[d.date] || 0) + d.value;
+                });
+                (p.tokensPerDay || []).forEach(function(d) {
+                    tokensByDay[d.date] = (tokensByDay[d.date] || 0) + d.value;
+                    costByDay[d.date] = (costByDay[d.date] || 0) + (d.cost || 0);
+                });
+            });
+
+            // Convert to sorted arrays
+            var dates = Object.keys(messagesByDay).sort();
+            var messagesPerDay = dates.map(function(d) { return { date: d, value: messagesByDay[d] }; });
+            var tokensPerDay = dates.map(function(d) { return { date: d, value: tokensByDay[d] || 0, cost: costByDay[d] || 0 }; });
+
+            return {
+                messages: totalMessages,
+                tokens: totalTokens,
+                cost: totalCost,
+                sessions: totalSessions,
+                messagesPerDay: messagesPerDay,
+                tokensPerDay: tokensPerDay,
+                avgSessionLengthMins: totalSessions > 0 ? totalSessionMins / totalSessions : 0,
+                avgMessagesPerSession: totalSessions > 0 ? totalMessages / totalSessions : 0
+            };
+        }
+
+        function filterData(data, range, projects) {
+            // Get base data - either from selected projects or all
+            var selectedData = getSelectedProjectsData();
+            var aggregated = selectedData ? aggregateProjectsData(selectedData) : null;
+
+            var baseMessagesPerDay = aggregated ? aggregated.messagesPerDay : data.messagesPerDay;
+            var baseTokensPerDay = aggregated ? aggregated.tokensPerDay : data.tokensPerDay;
+            var baseTotalMessages = aggregated ? aggregated.messages : data.totalMessages;
+            var baseTotalTokens = aggregated ? aggregated.tokens : data.totalTokens;
+            var baseTotalCost = aggregated ? aggregated.cost : (data.totalCost || 0);
+            var baseSessions = aggregated ? aggregated.sessions : data.totalSessions;
+            var baseAvgLength = aggregated ? aggregated.avgSessionLengthMins : data.avgSessionLengthMins;
+            var baseAvgMessages = aggregated ? aggregated.avgMessagesPerSession : data.avgMessagesPerSession;
 
             // If no time filter, return project-filtered data
             if (range === 'all') {
                 return {
-                    totalProjects: projectData ? 1 : data.totalProjects,
+                    totalProjects: projects.length > 0 ? projects.length : data.totalProjects,
                     totalSessions: baseSessions,
                     totalMessages: baseTotalMessages,
                     totalTokens: baseTotalTokens,
+                    totalCost: baseTotalCost,
                     messagesPerDay: baseMessagesPerDay || [],
                     tokensPerDay: baseTokensPerDay || [],
                     projectStats: data.projectStats,
-                    avgSessionLengthMins: data.avgSessionLengthMins,
-                    avgMessagesPerSession: data.avgMessagesPerSession,
-                    selectedProject: currentProject
+                    avgSessionLengthMins: baseAvgLength,
+                    avgMessagesPerSession: baseAvgMessages,
+                    selectedProjects: projects
                 };
             }
 
@@ -320,18 +579,20 @@ const statsTemplate = `<!DOCTYPE html>
             // Recalculate totals from filtered data
             var totalMessages = filteredMessages.reduce(function(sum, d) { return sum + d.value; }, 0);
             var totalTokens = filteredTokens.reduce(function(sum, d) { return sum + d.value; }, 0);
+            var totalCost = filteredTokens.reduce(function(sum, d) { return sum + (d.cost || 0); }, 0);
 
             return {
-                totalProjects: projectData ? 1 : data.totalProjects,
+                totalProjects: projects.length > 0 ? projects.length : data.totalProjects,
                 totalSessions: baseSessions,
                 totalMessages: totalMessages,
                 totalTokens: totalTokens,
+                totalCost: totalCost,
                 messagesPerDay: filteredMessages,
                 tokensPerDay: filteredTokens,
                 projectStats: data.projectStats,
-                avgSessionLengthMins: data.avgSessionLengthMins,
-                avgMessagesPerSession: data.avgMessagesPerSession,
-                selectedProject: currentProject
+                avgSessionLengthMins: baseAvgLength,
+                avgMessagesPerSession: baseAvgMessages,
+                selectedProjects: projects
             };
         }
 
@@ -341,11 +602,16 @@ const statsTemplate = `<!DOCTYPE html>
             document.getElementById('stat-tokens').textContent = formatNumber(data.totalTokens);
             document.getElementById('stat-sessions').textContent = formatNumber(data.totalSessions);
             document.getElementById('stat-projects').textContent = formatNumber(data.totalProjects);
+            document.getElementById('stat-cost').textContent = formatCurrency(data.totalCost || 0);
+
+            // Update bottom stats (now filtered!)
+            document.getElementById('stat-avg-length').textContent = formatMinutes(data.avgSessionLengthMins);
+            document.getElementById('stat-avg-messages').textContent = data.avgMessagesPerSession.toFixed(1);
 
             // Update charts
             updateMessagesChart(data.messagesPerDay);
             updateTokensChart(data.tokensPerDay);
-            updateProjectsChart(data.projectStats, data.selectedProject);
+            updateProjectsChart(data.projectStats, data.selectedProjects);
         }
 
         function updateMessagesChart(data) {
@@ -368,23 +634,28 @@ const statsTemplate = `<!DOCTYPE html>
             }
         }
 
-        function updateProjectsChart(projectStats, selectedProject) {
+        function updateProjectsChart(projectStats, selectedProjectSlugs) {
             if (!projectsChart) return;
 
-            // Sort by messages and take top 10
-            var sorted = projectStats.slice().sort(function(a, b) { return b.messages - a.messages; }).slice(0, 10);
+            var displayData;
+            if (selectedProjectSlugs && selectedProjectSlugs.length > 0) {
+                // Show only selected projects, sorted by messages
+                displayData = projectStats
+                    .filter(function(p) { return selectedProjectSlugs.indexOf(p.slug) !== -1; })
+                    .sort(function(a, b) { return b.messages - a.messages; });
+            } else {
+                // Show top 10 by messages
+                displayData = projectStats.slice().sort(function(a, b) { return b.messages - a.messages; }).slice(0, 10);
+            }
 
-            // Generate colors - highlight selected, dim others
-            var colors = sorted.map(function(d) {
-                if (!selectedProject) return accentColor; // No selection = all normal
-                return d.slug === selectedProject ? accentColor : 'rgba(194, 65, 12, 0.3)';
-            });
+            // All selected projects get accent color
+            var colors = displayData.map(function() { return accentColor; });
 
-            projectsChart.data.labels = sorted.map(function(d) {
+            projectsChart.data.labels = displayData.map(function(d) {
                 var name = d.path.split('/').pop() || d.slug;
                 return name.length > 25 ? name.substring(0, 22) + '...' : name;
             });
-            projectsChart.data.datasets[0].data = sorted.map(function(d) { return d.messages; });
+            projectsChart.data.datasets[0].data = displayData.map(function(d) { return d.messages; });
             projectsChart.data.datasets[0].backgroundColor = colors;
             projectsChart.update();
         }
@@ -399,13 +670,14 @@ const statsTemplate = `<!DOCTYPE html>
                 populateProjectFilter(data.projectStats);
 
                 // Apply default filter (month)
-                var filtered = filterDataByRange(data, currentRange);
+                var filtered = filterData(data, currentRange, selectedProjects);
 
                 // Update summary cards
                 document.getElementById('stat-messages').textContent = formatNumber(filtered.totalMessages);
                 document.getElementById('stat-sessions').textContent = formatNumber(data.totalSessions);
                 document.getElementById('stat-projects').textContent = formatNumber(data.totalProjects);
                 document.getElementById('stat-tokens').textContent = formatNumber(filtered.totalTokens);
+                document.getElementById('stat-cost').textContent = formatCurrency(filtered.totalCost || 0);
                 document.getElementById('stat-avg-length').textContent = formatMinutes(data.avgSessionLengthMins);
                 document.getElementById('stat-avg-messages').textContent = data.avgMessagesPerSession.toFixed(1);
 
@@ -422,6 +694,311 @@ const statsTemplate = `<!DOCTYPE html>
                 console.error('Failed to load stats:', err);
                 loading.innerHTML = '<div class="error-state"><div class="error-icon">!</div><p>Failed to load statistics</p></div>';
             });
+
+        // ===============================
+        // Account Filter Functionality
+        // ===============================
+
+        var ACCOUNT_STORAGE_KEY = 'claude-code-logs-accounts';
+        var accountFilter = document.getElementById('account-filter');
+        var accountSettingsBtn = document.getElementById('account-settings-btn');
+        var accountModalBackdrop = document.getElementById('account-modal-backdrop');
+        var accountModal = document.getElementById('account-modal');
+        var accountModalClose = document.getElementById('account-modal-close');
+        var accountModalCancel = document.getElementById('account-modal-cancel');
+        var accountModalSave = document.getElementById('account-modal-save');
+        var accountMappingsContainer = document.getElementById('account-mappings');
+        var addMappingBtn = document.getElementById('add-mapping-btn');
+        var selectedAccount = '';
+        var accountMappings = []; // [{name: 'Work', pattern: '/work/'}, ...]
+
+        // Load account mappings from localStorage
+        function loadAccountMappings() {
+            try {
+                var saved = localStorage.getItem(ACCOUNT_STORAGE_KEY);
+                if (saved) {
+                    accountMappings = JSON.parse(saved);
+                }
+            } catch (e) {
+                console.warn('Failed to load account mappings:', e);
+            }
+            populateAccountFilter();
+        }
+
+        // Save account mappings to localStorage
+        function saveAccountMappings() {
+            try {
+                localStorage.setItem(ACCOUNT_STORAGE_KEY, JSON.stringify(accountMappings));
+            } catch (e) {
+                console.warn('Failed to save account mappings:', e);
+            }
+        }
+
+        // Populate account filter dropdown
+        function populateAccountFilter() {
+            // Clear existing options except "All Accounts"
+            while (accountFilter.options.length > 1) {
+                accountFilter.remove(1);
+            }
+            // Add account options
+            accountMappings.forEach(function(mapping) {
+                var option = document.createElement('option');
+                option.value = mapping.name;
+                option.textContent = mapping.name;
+                accountFilter.appendChild(option);
+            });
+            // Add "Unassigned" option if there are any mappings
+            if (accountMappings.length > 0) {
+                var unassigned = document.createElement('option');
+                unassigned.value = '__unassigned__';
+                unassigned.textContent = 'Unassigned';
+                accountFilter.appendChild(unassigned);
+            }
+        }
+
+        // Get account for a project based on path matching
+        function getProjectAccount(projectPath) {
+            for (var i = 0; i < accountMappings.length; i++) {
+                var mapping = accountMappings[i];
+                if (projectPath.includes(mapping.pattern)) {
+                    return mapping.name;
+                }
+            }
+            return null; // Unassigned
+        }
+
+        // Filter projects by account
+        function filterProjectsByAccount(projects, account) {
+            if (!account) return projects; // All accounts
+            if (account === '__unassigned__') {
+                return projects.filter(function(p) {
+                    return getProjectAccount(p.path) === null;
+                });
+            }
+            return projects.filter(function(p) {
+                return getProjectAccount(p.path) === account;
+            });
+        }
+
+        // Account filter change handler
+        accountFilter.addEventListener('change', function() {
+            selectedAccount = accountFilter.value;
+            // Clear project selection when account changes
+            selectedProjects = [];
+            updateProjectSelection();
+            // Repopulate project filter with filtered projects
+            if (fullData) {
+                var accountFiltered = filterProjectsByAccount(fullData.projectStats, selectedAccount);
+                populateProjectFilterWithProjects(accountFiltered);
+                var filtered = filterData(fullData, currentRange, selectedProjects);
+                updateDisplay(filtered);
+            }
+        });
+
+        // Populate project filter with specific projects list
+        function populateProjectFilterWithProjects(projects) {
+            filterOptions.innerHTML = '';
+            var sorted = projects.slice().sort(function(a, b) { return b.messages - a.messages; });
+            sorted.forEach(function(project) {
+                var name = project.path.split('/').pop() || project.slug;
+                var displayName = name.length > 35 ? name.substring(0, 32) + '...' : name;
+
+                var option = document.createElement('div');
+                option.className = 'multi-select-option';
+                option.dataset.slug = project.slug;
+                option.innerHTML = '<div class="multi-select-checkbox"><svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg></div>' +
+                    '<span class="multi-select-option-label">' + displayName + '</span>' +
+                    '<span class="multi-select-option-meta">' + formatNumber(project.messages) + ' msgs</span>';
+
+                option.addEventListener('click', function() {
+                    toggleProjectSelection(project.slug);
+                });
+
+                filterOptions.appendChild(option);
+            });
+        }
+
+        // Override filterData to include account filtering
+        var originalFilterData = filterData;
+        filterData = function(data, range, projects) {
+            // First filter by account
+            var accountFilteredStats = filterProjectsByAccount(data.projectStats, selectedAccount);
+
+            // Create a modified data object with account-filtered stats
+            var accountFilteredData = Object.assign({}, data, {
+                projectStats: accountFilteredStats
+            });
+
+            // Then apply the original filter logic
+            // Get base data - either from selected projects or account-filtered
+            var selectedData = null;
+            if (projects && projects.length > 0) {
+                selectedData = accountFilteredStats.filter(function(p) {
+                    return projects.indexOf(p.slug) !== -1;
+                });
+            }
+
+            var aggregated = selectedData && selectedData.length > 0 ? aggregateProjectsData(selectedData) : null;
+
+            // If no projects selected, aggregate all account-filtered projects
+            if (!aggregated && selectedAccount) {
+                aggregated = aggregateProjectsData(accountFilteredStats);
+            }
+
+            var baseMessagesPerDay = aggregated ? aggregated.messagesPerDay : data.messagesPerDay;
+            var baseTokensPerDay = aggregated ? aggregated.tokensPerDay : data.tokensPerDay;
+            var baseTotalMessages = aggregated ? aggregated.messages : data.totalMessages;
+            var baseTotalTokens = aggregated ? aggregated.tokens : data.totalTokens;
+            var baseTotalCost = aggregated ? aggregated.cost : (data.totalCost || 0);
+            var baseSessions = aggregated ? aggregated.sessions : data.totalSessions;
+            var baseAvgLength = aggregated ? aggregated.avgSessionLengthMins : data.avgSessionLengthMins;
+            var baseAvgMessages = aggregated ? aggregated.avgMessagesPerSession : data.avgMessagesPerSession;
+
+            // Determine project count
+            var projectCount = projects.length > 0 ? projects.length : (selectedAccount ? accountFilteredStats.length : data.totalProjects);
+
+            // If no time filter, return filtered data
+            if (range === 'all') {
+                return {
+                    totalProjects: projectCount,
+                    totalSessions: baseSessions,
+                    totalMessages: baseTotalMessages,
+                    totalTokens: baseTotalTokens,
+                    totalCost: baseTotalCost,
+                    messagesPerDay: baseMessagesPerDay || [],
+                    tokensPerDay: baseTokensPerDay || [],
+                    projectStats: accountFilteredStats,
+                    avgSessionLengthMins: baseAvgLength,
+                    avgMessagesPerSession: baseAvgMessages,
+                    selectedProjects: projects
+                };
+            }
+
+            // Apply time range filter
+            var now = new Date();
+            var cutoff;
+            switch (range) {
+                case 'today':
+                    cutoff = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+                    break;
+                case 'week':
+                    cutoff = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+                    break;
+                case 'month':
+                default:
+                    cutoff = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+            }
+            var cutoffStr = cutoff.toISOString().split('T')[0];
+
+            // Filter time series
+            var filteredMessages = (baseMessagesPerDay || []).filter(function(d) { return d.date >= cutoffStr; });
+            var filteredTokens = (baseTokensPerDay || []).filter(function(d) { return d.date >= cutoffStr; });
+
+            // Recalculate totals from filtered data
+            var totalMessages = filteredMessages.reduce(function(sum, d) { return sum + d.value; }, 0);
+            var totalTokens = filteredTokens.reduce(function(sum, d) { return sum + d.value; }, 0);
+            var totalCost = filteredTokens.reduce(function(sum, d) { return sum + (d.cost || 0); }, 0);
+
+            return {
+                totalProjects: projectCount,
+                totalSessions: baseSessions,
+                totalMessages: totalMessages,
+                totalTokens: totalTokens,
+                totalCost: totalCost,
+                messagesPerDay: filteredMessages,
+                tokensPerDay: filteredTokens,
+                projectStats: accountFilteredStats,
+                avgSessionLengthMins: baseAvgLength,
+                avgMessagesPerSession: baseAvgMessages,
+                selectedProjects: projects
+            };
+        };
+
+        // Account settings modal handlers
+        accountSettingsBtn.addEventListener('click', function() {
+            openAccountModal();
+        });
+
+        accountModalClose.addEventListener('click', closeAccountModal);
+        accountModalCancel.addEventListener('click', closeAccountModal);
+
+        accountModalBackdrop.addEventListener('click', function(e) {
+            if (e.target === accountModalBackdrop) {
+                closeAccountModal();
+            }
+        });
+
+        function openAccountModal() {
+            renderMappingRows();
+            accountModalBackdrop.classList.add('open');
+        }
+
+        function closeAccountModal() {
+            accountModalBackdrop.classList.remove('open');
+        }
+
+        function renderMappingRows() {
+            accountMappingsContainer.innerHTML = '';
+            accountMappings.forEach(function(mapping, index) {
+                addMappingRow(mapping.name, mapping.pattern, index);
+            });
+            // Add empty row if no mappings
+            if (accountMappings.length === 0) {
+                addMappingRow('', '', 0);
+            }
+        }
+
+        function addMappingRow(name, pattern, index) {
+            var row = document.createElement('div');
+            row.className = 'account-mapping-row';
+            row.dataset.index = index;
+            row.innerHTML = '<input type="text" class="name-input" placeholder="Account name (e.g., Work)" value="' + (name || '') + '">' +
+                '<input type="text" class="pattern-input" placeholder="Path pattern (e.g., /work/)" value="' + (pattern || '') + '">' +
+                '<button type="button" class="remove-mapping-btn"><svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"/></svg></button>';
+
+            row.querySelector('.remove-mapping-btn').addEventListener('click', function() {
+                row.remove();
+            });
+
+            accountMappingsContainer.appendChild(row);
+        }
+
+        addMappingBtn.addEventListener('click', function() {
+            var rows = accountMappingsContainer.querySelectorAll('.account-mapping-row');
+            addMappingRow('', '', rows.length);
+        });
+
+        accountModalSave.addEventListener('click', function() {
+            // Collect mappings from form
+            var newMappings = [];
+            var rows = accountMappingsContainer.querySelectorAll('.account-mapping-row');
+            rows.forEach(function(row) {
+                var name = row.querySelector('.name-input').value.trim();
+                var pattern = row.querySelector('.pattern-input').value.trim();
+                if (name && pattern) {
+                    newMappings.push({ name: name, pattern: pattern });
+                }
+            });
+
+            accountMappings = newMappings;
+            saveAccountMappings();
+            populateAccountFilter();
+            closeAccountModal();
+
+            // Reset account filter and refresh
+            selectedAccount = '';
+            accountFilter.value = '';
+            selectedProjects = [];
+            updateProjectSelection();
+            if (fullData) {
+                populateProjectFilter(fullData.projectStats);
+                var filtered = filterData(fullData, currentRange, selectedProjects);
+                updateDisplay(filtered);
+            }
+        });
+
+        // Initialize account mappings on page load
+        loadAccountMappings();
 
         function renderMessagesChart(data) {
             var ctx = document.getElementById('messagesChart').getContext('2d');
@@ -793,7 +1370,277 @@ const statsCSS = `
     color: var(--text-secondary);
 }
 
-.project-filter {
+/* Multi-Select Component */
+.multi-select-wrapper {
+    position: relative;
+}
+
+.multi-select-display {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 12px;
+    border: 1px solid var(--border-subtle);
+    border-radius: 20px;
+    background: var(--bg-secondary);
+    color: var(--text-secondary);
+    font-family: var(--font-body);
+    font-size: 0.85rem;
+    font-weight: 500;
+    cursor: pointer;
+    min-width: 150px;
+    max-width: 250px;
+    transition: all var(--transition-fast);
+}
+
+.multi-select-display:hover {
+    border-color: var(--border-medium);
+    background-color: var(--bg-tertiary);
+}
+
+.multi-select-display.active {
+    border-color: var(--accent-primary);
+    box-shadow: 0 0 0 2px var(--accent-subtle);
+}
+
+.multi-select-placeholder {
+    flex: 1;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.multi-select-count {
+    background: var(--accent-primary);
+    color: white;
+    padding: 2px 8px;
+    border-radius: 12px;
+    font-size: 0.75rem;
+    font-weight: 600;
+}
+
+.multi-select-chevron {
+    width: 16px;
+    height: 16px;
+    flex-shrink: 0;
+    transition: transform var(--transition-fast);
+}
+
+.multi-select-display.active .multi-select-chevron {
+    transform: rotate(180deg);
+}
+
+.multi-select-dropdown {
+    display: none;
+    position: absolute;
+    top: calc(100% + 4px);
+    right: 0;
+    min-width: 280px;
+    max-width: 350px;
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-subtle);
+    border-radius: 12px;
+    box-shadow: var(--shadow-lg);
+    z-index: 100;
+    overflow: hidden;
+}
+
+.multi-select-dropdown.open {
+    display: block;
+    animation: dropdownFadeIn 0.15s ease-out;
+}
+
+@keyframes dropdownFadeIn {
+    from { opacity: 0; transform: translateY(-4px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.multi-select-search-wrapper {
+    padding: 8px;
+    border-bottom: 1px solid var(--border-subtle);
+}
+
+.multi-select-search {
+    width: 100%;
+    padding: 8px 12px;
+    border: 1px solid var(--border-subtle);
+    border-radius: 8px;
+    background: var(--bg-primary);
+    color: var(--text-primary);
+    font-family: var(--font-body);
+    font-size: 0.85rem;
+}
+
+.multi-select-search:focus {
+    outline: none;
+    border-color: var(--accent-primary);
+}
+
+.multi-select-options {
+    max-height: 240px;
+    overflow-y: auto;
+    padding: 4px 0;
+}
+
+.multi-select-option {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 12px;
+    cursor: pointer;
+    transition: background var(--transition-fast);
+}
+
+.multi-select-option:hover {
+    background: var(--bg-tertiary);
+}
+
+.multi-select-option.selected {
+    background: var(--accent-subtle);
+}
+
+.multi-select-checkbox {
+    width: 18px;
+    height: 18px;
+    border: 2px solid var(--border-medium);
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    transition: all var(--transition-fast);
+}
+
+.multi-select-option.selected .multi-select-checkbox {
+    background: var(--accent-primary);
+    border-color: var(--accent-primary);
+}
+
+.multi-select-checkbox svg {
+    width: 12px;
+    height: 12px;
+    color: white;
+    opacity: 0;
+}
+
+.multi-select-option.selected .multi-select-checkbox svg {
+    opacity: 1;
+}
+
+.multi-select-option-label {
+    flex: 1;
+    font-size: 0.85rem;
+    color: var(--text-primary);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.multi-select-option-meta {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+}
+
+.multi-select-actions {
+    display: flex;
+    justify-content: space-between;
+    padding: 8px;
+    border-top: 1px solid var(--border-subtle);
+    background: var(--bg-tertiary);
+}
+
+.multi-select-action {
+    padding: 6px 12px;
+    border: none;
+    border-radius: 6px;
+    background: transparent;
+    color: var(--text-secondary);
+    font-family: var(--font-body);
+    font-size: 0.8rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all var(--transition-fast);
+}
+
+.multi-select-action:hover {
+    background: var(--bg-secondary);
+}
+
+.multi-select-action.primary {
+    background: var(--accent-primary);
+    color: white;
+}
+
+.multi-select-action.primary:hover {
+    background: var(--accent-hover);
+}
+
+/* Selected Chips */
+.selected-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 16px;
+    min-height: 0;
+}
+
+.selected-chips:empty {
+    display: none;
+}
+
+.selected-chip {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 10px;
+    background: var(--accent-subtle);
+    border: 1px solid var(--accent-primary);
+    border-radius: 16px;
+    font-size: 0.8rem;
+    color: var(--accent-primary);
+    font-weight: 500;
+}
+
+.selected-chip-remove {
+    width: 16px;
+    height: 16px;
+    border: none;
+    background: transparent;
+    color: var(--accent-primary);
+    cursor: pointer;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    transition: all var(--transition-fast);
+}
+
+.selected-chip-remove:hover {
+    background: var(--accent-primary);
+    color: white;
+}
+
+.selected-chip-remove svg {
+    width: 12px;
+    height: 12px;
+}
+
+/* Filter Row */
+.filter-row {
+    display: flex;
+    gap: 16px;
+    align-items: center;
+}
+
+/* Account Filter */
+.account-filter-container {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.account-filter {
     padding: 8px 32px 8px 12px;
     border: 1px solid var(--border-subtle);
     border-radius: 20px;
@@ -807,26 +1654,260 @@ const statsCSS = `
     background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%2357534E' d='M3 4.5L6 7.5L9 4.5'/%3E%3C/svg%3E");
     background-repeat: no-repeat;
     background-position: right 12px center;
-    min-width: 150px;
-    max-width: 200px;
+    min-width: 130px;
     transition: all var(--transition-fast);
 }
 
-.project-filter:hover {
+.account-filter:hover {
     border-color: var(--border-medium);
     background-color: var(--bg-tertiary);
 }
 
-.project-filter:focus {
+.account-filter:focus {
     outline: none;
     border-color: var(--accent-primary);
     box-shadow: 0 0 0 2px var(--accent-subtle);
 }
 
+.account-settings-btn {
+    width: 32px;
+    height: 32px;
+    border: 1px solid var(--border-subtle);
+    border-radius: 8px;
+    background: var(--bg-secondary);
+    color: var(--text-muted);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all var(--transition-fast);
+}
+
+.account-settings-btn:hover {
+    border-color: var(--border-medium);
+    color: var(--text-secondary);
+    background: var(--bg-tertiary);
+}
+
+.account-settings-btn svg {
+    width: 16px;
+    height: 16px;
+}
+
+/* Modal */
+.modal-backdrop {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 1000;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+}
+
+.modal-backdrop.open {
+    display: flex;
+    animation: fadeIn 0.15s ease-out;
+}
+
+.modal {
+    background: var(--bg-secondary);
+    border-radius: 16px;
+    box-shadow: var(--shadow-lg);
+    width: 100%;
+    max-width: 500px;
+    max-height: 80vh;
+    display: flex;
+    flex-direction: column;
+    animation: modalSlideIn 0.2s ease-out;
+}
+
+@keyframes modalSlideIn {
+    from { opacity: 0; transform: translateY(-20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.modal-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 20px 24px;
+    border-bottom: 1px solid var(--border-subtle);
+}
+
+.modal-title {
+    font-family: var(--font-display);
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin: 0;
+}
+
+.modal-close {
+    width: 32px;
+    height: 32px;
+    border: none;
+    background: transparent;
+    color: var(--text-muted);
+    font-size: 24px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 8px;
+    transition: all var(--transition-fast);
+}
+
+.modal-close:hover {
+    background: var(--bg-tertiary);
+    color: var(--text-primary);
+}
+
+.modal-body {
+    padding: 20px 24px;
+    overflow-y: auto;
+    flex: 1;
+}
+
+.modal-description {
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+    margin: 0 0 16px;
+    line-height: 1.5;
+}
+
+.account-mappings {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-bottom: 16px;
+}
+
+.account-mapping-row {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+}
+
+.account-mapping-row input {
+    flex: 1;
+    padding: 10px 12px;
+    border: 1px solid var(--border-subtle);
+    border-radius: 8px;
+    background: var(--bg-primary);
+    color: var(--text-primary);
+    font-family: var(--font-body);
+    font-size: 0.9rem;
+}
+
+.account-mapping-row input:focus {
+    outline: none;
+    border-color: var(--accent-primary);
+}
+
+.account-mapping-row input::placeholder {
+    color: var(--text-muted);
+}
+
+.account-mapping-row .pattern-input {
+    flex: 1.5;
+}
+
+.remove-mapping-btn {
+    width: 32px;
+    height: 32px;
+    border: none;
+    background: transparent;
+    color: var(--text-muted);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 8px;
+    transition: all var(--transition-fast);
+    flex-shrink: 0;
+}
+
+.remove-mapping-btn:hover {
+    background: rgba(220, 38, 38, 0.1);
+    color: #DC2626;
+}
+
+.remove-mapping-btn svg {
+    width: 16px;
+    height: 16px;
+}
+
+.add-mapping-btn {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 16px;
+    border: 1px dashed var(--border-medium);
+    border-radius: 8px;
+    background: transparent;
+    color: var(--text-secondary);
+    font-family: var(--font-body);
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: all var(--transition-fast);
+    width: 100%;
+    justify-content: center;
+}
+
+.add-mapping-btn:hover {
+    border-color: var(--accent-primary);
+    color: var(--accent-primary);
+    background: var(--accent-subtle);
+}
+
+.add-mapping-btn svg {
+    width: 16px;
+    height: 16px;
+}
+
+.modal-footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+    padding: 16px 24px;
+    border-top: 1px solid var(--border-subtle);
+}
+
+.modal-btn {
+    padding: 10px 20px;
+    border: 1px solid var(--border-subtle);
+    border-radius: 8px;
+    background: var(--bg-secondary);
+    color: var(--text-secondary);
+    font-family: var(--font-body);
+    font-size: 0.9rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all var(--transition-fast);
+}
+
+.modal-btn:hover {
+    border-color: var(--border-medium);
+    background: var(--bg-tertiary);
+}
+
+.modal-btn.primary {
+    background: var(--accent-primary);
+    border-color: var(--accent-primary);
+    color: white;
+}
+
+.modal-btn.primary:hover {
+    background: var(--accent-hover);
+    border-color: var(--accent-hover);
+}
+
 /* Summary Cards */
 .stats-summary {
     display: grid;
-    grid-template-columns: repeat(4, 1fr);
+    grid-template-columns: repeat(5, 1fr);
     gap: 16px;
     margin-bottom: 24px;
 }
@@ -951,11 +2032,17 @@ const statsCSS = `
 /* Responsive */
 @media (max-width: 1024px) {
     .stats-summary {
-        grid-template-columns: repeat(2, 1fr);
+        grid-template-columns: repeat(3, 1fr);
     }
-    
+
     .stat-card-wide {
         grid-column: span 2;
+    }
+}
+
+@media (max-width: 900px) {
+    .stats-summary {
+        grid-template-columns: repeat(2, 1fr);
     }
 }
 
@@ -965,12 +2052,32 @@ const statsCSS = `
         align-items: flex-start;
     }
 
+    .filter-row {
+        flex-direction: column;
+        width: 100%;
+        gap: 12px;
+    }
+
+    .account-filter-container {
+        width: 100%;
+    }
+
+    .account-filter {
+        flex: 1;
+    }
+
     .project-filter-container {
         width: 100%;
     }
 
-    .project-filter {
-        flex: 1;
+    .multi-select-display {
+        max-width: none;
+    }
+
+    .multi-select-dropdown {
+        left: 0;
+        right: 0;
+        min-width: auto;
         max-width: none;
     }
 
@@ -993,6 +2100,11 @@ const statsCSS = `
     .stat-inline {
         flex-direction: column;
         gap: 16px;
+    }
+
+    .modal {
+        max-width: 100%;
+        margin: 0;
     }
 }
 

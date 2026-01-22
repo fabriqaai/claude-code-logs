@@ -1,7 +1,7 @@
 project:
   name: claude-code-logs
   framework: fire-v1
-  fire_version: "0.1.8"
+  fire_version: 0.1.8
 workspace:
   type: brownfield
   structure: monolith
@@ -46,6 +46,19 @@ intents:
       - id: 03-client-side-filtering
         status: completed
         run_id: run-006
+  - id: cost-estimation
+    title: Cost Estimation on Stats Dashboard
+    status: in_progress
+    work_items:
+      - id: 01-cost-calculation-logic
+        status: completed
+        run_id: run-007
+      - id: 02-stats-cost-aggregation
+        status: completed
+        run_id: run-007
+      - id: 03-stats-page-cost-ui
+        status: completed
+        run_id: run-007
 active_run: null
 runs:
   completed:
@@ -97,3 +110,16 @@ runs:
           intent: project-stats-filtering
           mode: confirm
       completed: 2026-01-21T16:49:37.273Z
+    - id: run-007
+      scope: wide
+      work_items:
+        - id: 01-cost-calculation-logic
+          intent: cost-estimation
+          mode: autopilot
+        - id: 02-stats-cost-aggregation
+          intent: cost-estimation
+          mode: autopilot
+        - id: 03-stats-page-cost-ui
+          intent: cost-estimation
+          mode: confirm
+      completed: 2026-01-22T21:00:58.792Z
