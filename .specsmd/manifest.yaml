@@ -1,6 +1,6 @@
 flow: fire
-version: 0.1.12
-installed_at: '2026-01-24T18:30:26.327Z'
+version: 0.1.15
+installed_at: '2026-01-24T20:00:49.342Z'
 tools:
   - claude
   - cursor
