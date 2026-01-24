@@ -1,6 +1,8 @@
 flow: fire
 version: 0.1.12
-installed_at: '2026-01-24T18:03:13.775Z'
+installed_at: '2026-01-24T18:30:26.327Z'
 tools:
   - claude
+  - cursor
   - copilot
+  - antigravity
