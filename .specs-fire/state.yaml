@@ -48,7 +48,7 @@ intents:
         run_id: run-006
   - id: cost-estimation
     title: Cost Estimation on Stats Dashboard
-    status: in_progress
+    status: completed
     work_items:
       - id: 01-cost-calculation-logic
         status: completed
