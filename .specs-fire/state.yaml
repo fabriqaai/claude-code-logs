@@ -59,8 +59,8 @@ intents:
       - id: 03-stats-page-cost-ui
         status: completed
         run_id: run-007
-active_run: null
 runs:
+  active: []
   completed:
     - id: run-001
       work_items:
