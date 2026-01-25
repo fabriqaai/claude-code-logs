@@ -6,8 +6,7 @@ Browse and search your Claude Code chat logs with a local web interface.
 
 Blog articles about this project
 https://www.cengizhan.com/p/announcing-claude-code-logs-a-searchable
-https://substack.com/home/post/p-184954206
-
+https://www.cengizhan.com/p/building-a-permanent-archive-of-every
 
 ## Features
 
