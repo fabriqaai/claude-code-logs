@@ -316,3 +316,261 @@ func TestDefaultClaudeProjectsPath(t *testing.T) {
 		t.Errorf("Expected absolute path, got %q", path)
 	}
 }
+
+func TestGetProjectLastUpdate(t *testing.T) {
+	t1 := time.Date(2025, 12, 25, 10, 0, 0, 0, time.UTC)
+	t2 := time.Date(2025, 12, 26, 10, 0, 0, 0, time.UTC)
+	t3 := time.Date(2025, 12, 27, 10, 0, 0, 0, time.UTC)
+
+	tests := []struct {
+		name     string
+		project  Project
+		expected time.Time
+	}{
+		{
+			name: "single session",
+			project: Project{
+				Path: "/test/project1",
+				Sessions: []Session{
+					{ID: "s1", UpdatedAt: t1},
+				},
+			},
+			expected: t1,
+		},
+		{
+			name: "multiple sessions - returns most recent",
+			project: Project{
+				Path: "/test/project2",
+				Sessions: []Session{
+					{ID: "s1", UpdatedAt: t1},
+					{ID: "s2", UpdatedAt: t3},
+					{ID: "s3", UpdatedAt: t2},
+				},
+			},
+			expected: t3,
+		},
+		{
+			name: "no sessions - returns zero time",
+			project: Project{
+				Path:     "/test/project3",
+				Sessions: []Session{},
+			},
+			expected: time.Time{},
+		},
+		{
+			name: "nil sessions - returns zero time",
+			project: Project{
+				Path:     "/test/project4",
+				Sessions: nil,
+			},
+			expected: time.Time{},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			result := getProjectLastUpdate(&tt.project)
+			if !result.Equal(tt.expected) {
+				t.Errorf("getProjectLastUpdate() = %v, want %v", result, tt.expected)
+			}
+		})
+	}
+}
+
+func TestParseMessage_EdgeCases(t *testing.T) {
+	// Test with empty message content
+	entry := &jsonlEntry{
+		UUID:      "msg1",
+		Timestamp: "2025-12-29T10:00:00.000Z",
+	}
+
+	msg, err := parseMessage(entry)
+	if err != nil {
+		t.Fatalf("parseMessage failed on empty message: %v", err)
+	}
+	if msg.UUID != "msg1" {
+		t.Errorf("Expected UUID 'msg1', got %q", msg.UUID)
+	}
+	if len(msg.Content) != 0 {
+		t.Errorf("Expected empty content, got %d blocks", len(msg.Content))
+	}
+}
+
+func TestParseMessage_NullParentUUID(t *testing.T) {
+	// Test with nil parentUUID
+	entry := &jsonlEntry{
+		UUID:       "msg1",
+		ParentUUID: nil,
+		Timestamp:  "2025-12-29T10:00:00.000Z",
+	}
+
+	msg, err := parseMessage(entry)
+	if err != nil {
+		t.Fatalf("parseMessage failed: %v", err)
+	}
+	if msg.ParentUUID != "" {
+		t.Errorf("Expected empty ParentUUID for nil, got %q", msg.ParentUUID)
+	}
+}
+
+func TestParseMessage_WithParentUUID(t *testing.T) {
+	parentID := "parent-msg"
+	entry := &jsonlEntry{
+		UUID:       "msg1",
+		ParentUUID: &parentID,
+		Timestamp:  "2025-12-29T10:00:00.000Z",
+	}
+
+	msg, err := parseMessage(entry)
+	if err != nil {
+		t.Fatalf("parseMessage failed: %v", err)
+	}
+	if msg.ParentUUID != "parent-msg" {
+		t.Errorf("Expected ParentUUID 'parent-msg', got %q", msg.ParentUUID)
+	}
+}
+
+func TestParseMessage_AlternateTimestampFormat(t *testing.T) {
+	// Test with different timestamp format
+	entry := &jsonlEntry{
+		UUID:      "msg1",
+		Timestamp: "2025-12-29T10:00:00Z", // RFC3339 format
+	}
+
+	msg, err := parseMessage(entry)
+	if err != nil {
+		t.Fatalf("parseMessage failed: %v", err)
+	}
+
+	expected := time.Date(2025, 12, 29, 10, 0, 0, 0, time.UTC)
+	if !msg.Timestamp.Equal(expected) {
+		t.Errorf("Expected timestamp %v, got %v", expected, msg.Timestamp)
+	}
+}
+
+func TestParseMessage_InvalidTimestamp(t *testing.T) {
+	entry := &jsonlEntry{
+		UUID:      "msg1",
+		Timestamp: "not-a-valid-timestamp",
+	}
+
+	msg, err := parseMessage(entry)
+	if err != nil {
+		t.Fatalf("parseMessage should not fail on invalid timestamp: %v", err)
+	}
+	// Should fallback to current time (approximately)
+	if msg.Timestamp.IsZero() {
+		t.Error("Timestamp should not be zero (should fallback to now)")
+	}
+}
+
+func TestParseSession_WithCWD(t *testing.T) {
+	tmpDir := t.TempDir()
+	sessionPath := filepath.Join(tmpDir, "test-session.jsonl")
+
+	jsonlContent := `{"type":"user","uuid":"msg1","timestamp":"2025-12-29T10:00:00.000Z","cwd":"/actual/project/path","message":{"role":"user","content":"Hello!"}}
+`
+
+	if err := os.WriteFile(sessionPath, []byte(jsonlContent), 0644); err != nil {
+		t.Fatalf("Failed to create test JSONL file: %v", err)
+	}
+
+	session, err := ParseSession(sessionPath, "test-session")
+	if err != nil {
+		t.Fatalf("ParseSession failed: %v", err)
+	}
+
+	if session.CWD != "/actual/project/path" {
+		t.Errorf("Expected CWD '/actual/project/path', got %q", session.CWD)
+	}
+}
+
+func TestParseSession_SummaryFallback(t *testing.T) {
+	tmpDir := t.TempDir()
+	sessionPath := filepath.Join(tmpDir, "test-session.jsonl")
+
+	// No summary entry - should use first user message as fallback
+	jsonlContent := `{"type":"user","uuid":"msg1","timestamp":"2025-12-29T10:00:00.000Z","message":{"role":"user","content":"This is the first user message that will become the summary"}}
+`
+
+	if err := os.WriteFile(sessionPath, []byte(jsonlContent), 0644); err != nil {
+		t.Fatalf("Failed to create test JSONL file: %v", err)
+	}
+
+	session, err := ParseSession(sessionPath, "test-session")
+	if err != nil {
+		t.Fatalf("ParseSession failed: %v", err)
+	}
+
+	if session.Summary != "This is the first user message that will become the summary" {
+		t.Errorf("Expected summary to be first user message, got %q", session.Summary)
+	}
+}
+
+func TestParseSession_SummaryFallbackTruncation(t *testing.T) {
+	tmpDir := t.TempDir()
+	sessionPath := filepath.Join(tmpDir, "test-session.jsonl")
+
+	// Create a long message that should be truncated
+	longMessage := "This is a very long message that exceeds one hundred characters and should be truncated to approximately one hundred characters with ellipsis"
+	jsonlContent := `{"type":"user","uuid":"msg1","timestamp":"2025-12-29T10:00:00.000Z","message":{"role":"user","content":"` + longMessage + `"}}
+`
+
+	if err := os.WriteFile(sessionPath, []byte(jsonlContent), 0644); err != nil {
+		t.Fatalf("Failed to create test JSONL file: %v", err)
+	}
+
+	session, err := ParseSession(sessionPath, "test-session")
+	if err != nil {
+		t.Fatalf("ParseSession failed: %v", err)
+	}
+
+	if len(session.Summary) > 100 {
+		t.Errorf("Summary should be truncated to ~100 chars, got %d chars", len(session.Summary))
+	}
+
+	if session.Summary[len(session.Summary)-3:] != "..." {
+		t.Error("Truncated summary should end with '...'")
+	}
+}
+
+func TestDiscoverProjects_SkipsNonEncodedPaths(t *testing.T) {
+	tmpDir := t.TempDir()
+
+	// Create directories - some with encoded paths, some without
+	dirs := []string{
+		"-Users-test-project1", // Valid encoded path
+		"-Users-test-project2", // Valid encoded path
+		"regular-folder",       // Not an encoded path (no leading dash)
+		"subfolder",            // Not an encoded path
+	}
+
+	for _, d := range dirs {
+		if err := os.MkdirAll(filepath.Join(tmpDir, d), 0755); err != nil {
+			t.Fatalf("Failed to create directory: %v", err)
+		}
+	}
+
+	projects, err := DiscoverProjects(tmpDir)
+	if err != nil {
+		t.Fatalf("DiscoverProjects failed: %v", err)
+	}
+
+	if len(projects) != 2 {
+		t.Errorf("Expected 2 projects (only encoded paths), got %d", len(projects))
+	}
+}
+
+func TestDiscoverProjects_NotADirectory(t *testing.T) {
+	tmpDir := t.TempDir()
+	filePath := filepath.Join(tmpDir, "not-a-dir")
+
+	if err := os.WriteFile(filePath, []byte("test"), 0644); err != nil {
+		t.Fatalf("Failed to create test file: %v", err)
+	}
+
+	_, err := DiscoverProjects(filePath)
+	if err == nil {
+		t.Error("Expected error when path is not a directory")
+	}
+}
