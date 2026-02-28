@@ -403,22 +403,77 @@ func TestCorsMiddleware(t *testing.T) {
 		w.WriteHeader(http.StatusOK)
 	}))
 
-	// Test regular request
+	// Test localhost origin - should be allowed
 	req := httptest.NewRequest(http.MethodGet, "/", nil)
+	req.Header.Set("Origin", "http://localhost:8080")
 	rr := httptest.NewRecorder()
 	handler.ServeHTTP(rr, req)
 
-	if rr.Header().Get("Access-Control-Allow-Origin") != "*" {
-		t.Error("CORS header should be set")
+	if rr.Header().Get("Access-Control-Allow-Origin") != "http://localhost:8080" {
+		t.Errorf("CORS should reflect localhost origin, got %q", rr.Header().Get("Access-Control-Allow-Origin"))
+	}
+
+	// Test 127.0.0.1 origin - should be allowed
+	req = httptest.NewRequest(http.MethodGet, "/", nil)
+	req.Header.Set("Origin", "http://127.0.0.1:3000")
+	rr = httptest.NewRecorder()
+	handler.ServeHTTP(rr, req)
+
+	if rr.Header().Get("Access-Control-Allow-Origin") != "http://127.0.0.1:3000" {
+		t.Errorf("CORS should reflect 127.0.0.1 origin, got %q", rr.Header().Get("Access-Control-Allow-Origin"))
+	}
+
+	// Test external origin - should NOT be allowed
+	req = httptest.NewRequest(http.MethodGet, "/", nil)
+	req.Header.Set("Origin", "https://evil.com")
+	rr = httptest.NewRecorder()
+	handler.ServeHTTP(rr, req)
+
+	if rr.Header().Get("Access-Control-Allow-Origin") != "" {
+		t.Errorf("CORS should not allow external origins, got %q", rr.Header().Get("Access-Control-Allow-Origin"))
+	}
+
+	// Test no origin header - should NOT set CORS header
+	req = httptest.NewRequest(http.MethodGet, "/", nil)
+	rr = httptest.NewRecorder()
+	handler.ServeHTTP(rr, req)
+
+	if rr.Header().Get("Access-Control-Allow-Origin") != "" {
+		t.Errorf("CORS should not be set without Origin header, got %q", rr.Header().Get("Access-Control-Allow-Origin"))
 	}
 
 	// Test preflight
 	req = httptest.NewRequest(http.MethodOptions, "/", nil)
+	req.Header.Set("Origin", "http://localhost:8080")
 	rr = httptest.NewRecorder()
 	handler.ServeHTTP(rr, req)
 
 	if rr.Code != http.StatusOK {
 		t.Errorf("OPTIONS should return OK, got %v", rr.Code)
+	}
+}
+
+func TestIsLocalhostOrigin(t *testing.T) {
+	tests := []struct {
+		origin string
+		want   bool
+	}{
+		{"http://localhost", true},
+		{"http://localhost:8080", true},
+		{"http://localhost:3000", true},
+		{"http://127.0.0.1", true},
+		{"http://127.0.0.1:8080", true},
+		{"https://evil.com", false},
+		{"http://localhost.evil.com", false},
+		{"", false},
+		{"http://0.0.0.0:8080", false},
+	}
+
+	for _, tt := range tests {
+		got := isLocalhostOrigin(tt.origin)
+		if got != tt.want {
+			t.Errorf("isLocalhostOrigin(%q) = %v, want %v", tt.origin, got, tt.want)
+		}
 	}
 }
 
